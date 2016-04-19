@@ -15,7 +15,7 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>RabbitMQ Producer Plugin</name>
+  <name>RabbitMQ Producer</name>
   <description>Publishes messages on RabbitMQ server</description>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/RabbitMQ+Producer</url>
   <licenses>
@@ -30,16 +30,29 @@
       <id>orjanpercy</id>
       <name>Örjan Percy</name>
       <email>orjan.percy@sonymobile.com</email>
+      <roles>
+       <role>architect</role>
+       <role>developer</role>
+      </roles>
+    </developer>
+    <developer><id>t_westling</id>
+     <name>Tomas Westling</name>
+     <email>tomas.westling@sonymobile.com</email>
+     <roles>
+      <role>architect</role>
+      <role>developer</role>
+      <role>maintainer</role>
+     </roles>
+    <timezone>+1</timezone>
     </developer>
   </developers>
 
-  <!-- Assuming you want to host on @jenkinsci:
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
   </scm>
-   -->
+
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>

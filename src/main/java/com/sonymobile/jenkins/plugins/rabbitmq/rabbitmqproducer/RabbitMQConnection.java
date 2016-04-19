@@ -159,7 +159,7 @@ public final class RabbitMQConnection implements ShutdownListener {
         try {
             if (channel == null || !channel.isOpen()) {
                 channel = getConnection().createChannel();
-                if (! getConnection().getAddress().isLoopbackAddress()) {
+                if (!getConnection().getAddress().isLoopbackAddress()) {
                     channel.exchangeDeclarePassive(exchange);
                 }
             }
