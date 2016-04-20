@@ -25,7 +25,6 @@ package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
 
 import com.rabbitmq.client.AMQP;
 import hudson.Extension;
-import hudson.Functions;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
@@ -50,14 +49,6 @@ import java.util.List;
 @Extension
 public class RunListenerImpl extends RunListener<Run> {
 
-    private static final String KEY_URL = "url";
-    private static final String KEY_STATE = "state";
-    private static final String KEY_CAUSES = "causes";
-    private static final String VALUE_STARTED = "STARTED";
-    private static final String VALUE_COMPLETED = "COMPLETED";
-    private static final String VALUE_DELETED = "DELETED";
-    private static final String KEY_STATUS = "status";
-    private static final String CONTENT_TYPE = "application/json";
     private static RabbitMQProducerConfig config;
 
     /**
@@ -65,22 +56,6 @@ public class RunListenerImpl extends RunListener<Run> {
      */
     public RunListenerImpl() {
         super(Run.class);
-    }
-
-    /**
-     * Get the job url for use with the REST api.
-     *
-     * @param r The started build.
-     * @return The url.
-     *
-     */
-    private String getJobUrl(Run r) {
-        Jenkins jenkins = Jenkins.getInstance();
-        if (jenkins != null && jenkins.getRootUrl() != null) {
-            return Functions.joinPath(jenkins.getRootUrl(), r.getUrl());
-        } else {
-            return r.getUrl();
-        }
     }
 
     @Override
@@ -113,9 +88,9 @@ public class RunListenerImpl extends RunListener<Run> {
             }
 
             JSONObject json = new JSONObject();
-            json.put(KEY_STATE, VALUE_STARTED);
-            json.put(KEY_URL, getJobUrl(r));
-            json.put(KEY_CAUSES, causes.toString());
+            json.put(Util.KEY_STATE, Util.VALUE_STARTED);
+            json.put(Util.KEY_URL, Util.getJobUrl(r));
+            json.put(Util.KEY_CAUSES, causes.toString());
             publish(json);
         }
     }
@@ -125,14 +100,14 @@ public class RunListenerImpl extends RunListener<Run> {
         if (r instanceof AbstractBuild) {
             AbstractBuild<?, ?> build = (AbstractBuild<?, ?>)r;
             JSONObject json = new JSONObject();
-            json.put(KEY_STATE, VALUE_COMPLETED);
-            json.put(KEY_URL, getJobUrl(r));
+            json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
+            json.put(Util.KEY_URL, Util.getJobUrl(r));
             String status = "";
             Result res = build.getResult();
             if (res != null) {
                 status = res.toString();
             }
-            json.put(KEY_STATUS, status);
+            json.put(Util.KEY_STATUS, status);
             publish(json);
         }
     }
@@ -142,9 +117,9 @@ public class RunListenerImpl extends RunListener<Run> {
             // Deleting a Job does not fire the RunListener.onDeleted event for its Runs
             // https://issues.jenkins-ci.org/browse/JENKINS-26708
             JSONObject json = new JSONObject();
-            json.put(KEY_STATE, VALUE_DELETED);
-            json.put(KEY_URL, getJobUrl(r));
-            json.put(KEY_STATUS, VALUE_DELETED);
+            json.put(Util.KEY_STATE, Util.VALUE_DELETED);
+            json.put(Util.KEY_URL, Util.getJobUrl(r));
+            json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
             publish(json);
         }
     }
@@ -166,9 +141,9 @@ public class RunListenerImpl extends RunListener<Run> {
             }
             bob.appId(config.getAppId());
             bob.deliveryMode(dm);
-            bob.contentType(CONTENT_TYPE);
-            RabbitMQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(), bob.build(),
-                    json.toString().getBytes(StandardCharsets.UTF_8));
+            bob.contentType(Util.CONTENT_TYPE);
+            RabbitMQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
+                    bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }
     }
 }
