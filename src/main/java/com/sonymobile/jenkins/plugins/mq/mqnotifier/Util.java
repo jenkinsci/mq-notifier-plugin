@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import hudson.Functions;
 import hudson.model.Queue;

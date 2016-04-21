@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertThat;
 //CS IGNORE Check FOR NEXT 100 LINES. REASON: TestData
 
 /**
- * Tests for RabbitMQ producer plugin.
+ * Tests for MQ notifier plugin.
  *
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
@@ -83,9 +83,9 @@ public class PluginTest {
      */
     @Test
     public void testConnection() {
-        RabbitMQConnection conn = RabbitMQConnection.getInstance();
-        RabbitMQProducerConfig config = RabbitMQProducerConfig.get();
-        assertNotNull("No config available: RabbitMQProducerConfig", config);
+        MQConnection conn = MQConnection.getInstance();
+        MQNotifierConfig config = MQNotifierConfig.get();
+        assertNotNull("No config available: MQNotifierConfig", config);
         config.setExchangeName(EXCHANGE);
         config.setServerUri(URI);
         config.setRoutingKey(ROUTING);

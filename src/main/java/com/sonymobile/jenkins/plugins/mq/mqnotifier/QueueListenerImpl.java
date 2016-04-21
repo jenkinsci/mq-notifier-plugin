@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.AMQP;
 import hudson.Extension;
@@ -33,12 +33,12 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Receives notifications about when tasks are submitted to the queue and publishes
- * messages on configured RabbitMQ server.
+ * messages on configured MQ server.
  * @author Tomas Westling &lt;tomas.westling@sonymobile.com&gt;
  */
 @Extension
 public class QueueListenerImpl extends QueueListener {
-    private static RabbitMQProducerConfig config;
+    private static MQNotifierConfig config;
 
     @Override
     public void onEnterWaiting(Queue.WaitingItem wi) {
@@ -62,13 +62,13 @@ public class QueueListenerImpl extends QueueListener {
     }
 
     /**
-     * Publish json message on configured RabbitMQ server.
+     * Publish json message on configured MQ server.
      *
      * @param json the message in json format
      */
     private void publish(JSONObject json) {
         if (config == null) {
-            config = RabbitMQProducerConfig.get();
+            config = MQNotifierConfig.get();
         }
         if (config != null) {
             AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
@@ -79,7 +79,7 @@ public class QueueListenerImpl extends QueueListener {
             bob.appId(config.getAppId());
             bob.deliveryMode(dm);
             bob.contentType(Util.CONTENT_TYPE);
-            RabbitMQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
+            MQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }
     }

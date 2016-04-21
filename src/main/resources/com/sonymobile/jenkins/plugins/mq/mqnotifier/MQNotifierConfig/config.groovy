@@ -21,14 +21,14 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier.MQNotifierConfig;
 
 def f = namespace("/lib/form")
-def l = "/plugin/rabbitmq-producer/"
+def l = "/plugin/mq-notifier/"
 
-f.section(title: "RabbitMQ Producer") {
+f.section(title: "MQ Notifier") {
 
-    f.entry(title: "RabbitMQ URI", field: "serverUri", help: l+"help-amqp-uri.html") {
+    f.entry(title: "MQ URI", field: "serverUri", help: l+"help-amqp-uri.html") {
         f.textbox()
     }
     f.entry(title: "User name", field: "userName", help: l+"help-user-name.html") {

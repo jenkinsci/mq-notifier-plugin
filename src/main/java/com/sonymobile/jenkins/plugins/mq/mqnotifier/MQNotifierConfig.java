@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.PossibleAuthenticationFailureException;
@@ -40,23 +40,23 @@ import javax.servlet.ServletException;
 import java.net.URISyntaxException;
 
 /**
- * Adds the RabbitMQ producer plugin configuration to the system config page.
+ * Adds the MQ notifier plugin configuration to the system config page.
  *
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
 @Extension
-public final class RabbitMQProducerConfig extends GlobalConfiguration {
+public final class MQNotifierConfig extends GlobalConfiguration {
     private final String[] schemes = { "amqp", "amqps" };
     private static final String SERVER_URI = "serverUri";
     private static final String USERNAME = "userName";
     private static final String PASSWORD = "userPassword";
 
-    /* The RabbitMQ server URI */
+    /* The MQ server URI */
     private String serverUri;
     private String userName;
     private Secret userPassword;
 
-    /* The producer sends messages to an exchange which will push the messages to one or several queues.*/
+    /* The notifier plugin sends messages to an exchange which will push the messages to one or several queues.*/
     private String exchangeName;
 
     /* The virtual host which the connection intends to operate within. */
@@ -84,8 +84,8 @@ public final class RabbitMQProducerConfig extends GlobalConfiguration {
      * @param appId the application id
      */
     @DataBoundConstructor
-    public RabbitMQProducerConfig(String serverUri, String userName, Secret userPassword, String exchangeName,
-                                  String virtualHost, String routingKey, boolean persistentDelivery, String appId) {
+    public MQNotifierConfig(String serverUri, String userName, Secret userPassword, String exchangeName,
+                            String virtualHost, String routingKey, boolean persistentDelivery, String appId) {
         this.serverUri = serverUri;
         this.userName = userName;
         this.userPassword = userPassword;
@@ -99,7 +99,7 @@ public final class RabbitMQProducerConfig extends GlobalConfiguration {
     /**
      * Load configuration on invoke.
      */
-    public RabbitMQProducerConfig() {
+    public MQNotifierConfig() {
         this.persistentDelivery = true; // default value
         load();
     }
@@ -115,7 +115,7 @@ public final class RabbitMQProducerConfig extends GlobalConfiguration {
     }
 
     /**
-     * Gets URI for RabbitMQ server.
+     * Gets URI for MQ server.
      *
      * @return the URI.
      */
@@ -124,7 +124,7 @@ public final class RabbitMQProducerConfig extends GlobalConfiguration {
     }
 
     /**
-     * Sets URI for RabbitMQ server.
+     * Sets URI for MQ server.
      *
      * @param serverUri the URI.
      */
@@ -164,8 +164,8 @@ public final class RabbitMQProducerConfig extends GlobalConfiguration {
      *
      * @return the instance of this extension.
      */
-    public static RabbitMQProducerConfig get() {
-        return GlobalConfiguration.all().get(RabbitMQProducerConfig.class);
+    public static MQNotifierConfig get() {
+        return GlobalConfiguration.all().get(MQNotifierConfig.class);
     }
 
     /**

@@ -10,14 +10,14 @@
     <version>1.580.1</version>
     <relativePath/>
   </parent>
-  <groupId>com.sonymobile.jenkins.plugins.rabbitmq</groupId>
-  <artifactId>rabbitmq-producer</artifactId>
+  <groupId>com.sonymobile.jenkins.plugins.mq</groupId>
+  <artifactId>mq-notifier</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>RabbitMQ Producer</name>
-  <description>Publishes messages on RabbitMQ server</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/RabbitMQ+Producer</url>
+  <name>MQ Notifier</name>
+  <description>Publishes messages on an MQ server</description>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/MQ+Notifier</url>
   <licenses>
     <license>
       <name>MIT License</name>

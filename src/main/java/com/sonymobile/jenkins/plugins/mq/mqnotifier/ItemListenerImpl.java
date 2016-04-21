@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import hudson.Extension;
 import hudson.model.listeners.ItemListener;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Receives job status notifications {@link ItemListener}.
- * Initialize the Rabbit MQ connection.
+ * Initialize the MQ connection.
  *
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
@@ -49,8 +49,8 @@ public class ItemListenerImpl extends ItemListener {
     @Override
     public final void onLoaded() {
         LOGGER.info("All jobs have been loaded.");
-        RabbitMQProducerConfig config = RabbitMQProducerConfig.get();
-        RabbitMQConnection.getInstance().initialize(config.getUserName(), config.getUserPassword(),
+        MQNotifierConfig config = MQNotifierConfig.get();
+        MQConnection.getInstance().initialize(config.getUserName(), config.getUserPassword(),
                 config.getServerUri(), config.getVirtualHost());
         super.onLoaded();
     }

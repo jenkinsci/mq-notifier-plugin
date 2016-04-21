@@ -1,6 +1,6 @@
-# RabbitMQ Producer Plugin
+# MQ Notifier Plugin
 
-This plugin sends a message to RabbitMQ each time a build is started
+This plugin sends a message to an MQ e.g. RabbitMQ each time a build is started
 and finished. By extending this plugin, developers can add events for when to send
 messages.
 

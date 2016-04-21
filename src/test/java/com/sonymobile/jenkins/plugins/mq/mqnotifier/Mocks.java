@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.AMQP;
 import hudson.model.Run;
@@ -54,7 +54,7 @@ public final class Mocks {
     /**
      * Mock the connection.
      */
-    public static final class RabbitMQConnectionMock extends MockUp<RabbitMQConnection> {
+    public static final class RabbitMQConnectionMock extends MockUp<MQConnection> {
 
         @Mock
         public void send(String exchangeName, String routingKey, AMQP.BasicProperties props, byte[] body) {

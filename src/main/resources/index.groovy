@@ -25,5 +25,5 @@ import lib.LayoutTagLib
 
 l=namespace(LayoutTagLib)
 div(
-  "This is the RabbitMQ producer plugin."
+  "This is the MQ notifier plugin."
 )

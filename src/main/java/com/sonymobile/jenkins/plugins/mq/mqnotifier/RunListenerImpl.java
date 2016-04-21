@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.AMQP;
 import hudson.Extension;
@@ -42,14 +42,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Receives notifications about builds and publish messages on configured RabbitMQ server.
+ * Receives notifications about builds and publish messages on configured MQ server.
  *
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
 @Extension
 public class RunListenerImpl extends RunListener<Run> {
 
-    private static RabbitMQProducerConfig config;
+    private static MQNotifierConfig config;
 
     /**
      * Constructor for RunListenerImpl.
@@ -125,13 +125,13 @@ public class RunListenerImpl extends RunListener<Run> {
     }
 
     /**
-     * Publish json message on configured RabbitMQ server.
+     * Publish json message on configured MQ server.
      *
      * @param json the message in json format
      */
     private void publish(JSONObject json) {
         if (config == null) {
-            config = RabbitMQProducerConfig.get();
+            config = MQNotifierConfig.get();
         }
         if (config != null) {
             AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
@@ -142,7 +142,7 @@ public class RunListenerImpl extends RunListener<Run> {
             bob.appId(config.getAppId());
             bob.deliveryMode(dm);
             bob.contentType(Util.CONTENT_TYPE);
-            RabbitMQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
+            MQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }
     }

@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonymobile.jenkins.plugins.rabbitmq.rabbitmqproducer;
+package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.AlreadyClosedException;
@@ -41,12 +41,12 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Creates a RabbitMQ connection.
+ * Creates an MQ connection.
  *
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
-public final class RabbitMQConnection implements ShutdownListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMQConnection.class);
+public final class MQConnection implements ShutdownListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MQConnection.class);
     private static final int HEARTBEAT_INTERVAL = 30;
 
     private String userName;
@@ -59,13 +59,13 @@ public final class RabbitMQConnection implements ShutdownListener {
     /**
      * Lazy-loaded singleton using the initialization-on-demand holder pattern.
      */
-    private RabbitMQConnection() { }
+    private MQConnection() { }
 
     /**
      * Is only executed on {@link #getInstance()} invocation.
      */
     private static class LazyRabbit {
-        private static final RabbitMQConnection INSTANCE = new RabbitMQConnection();
+        private static final MQConnection INSTANCE = new MQConnection();
         private static final ConnectionFactory CF = new ConnectionFactory();
     }
 
@@ -74,7 +74,7 @@ public final class RabbitMQConnection implements ShutdownListener {
      *
      * @return the instance
      */
-    public static RabbitMQConnection getInstance() {
+    public static MQConnection getInstance() {
         return LazyRabbit.INSTANCE;
     }
 
@@ -185,7 +185,7 @@ public final class RabbitMQConnection implements ShutdownListener {
     public void shutdownCompleted(ShutdownSignalException cause) {
         if (cause.isHardError()) {
             if (!cause.isInitiatedByApplication()) {
-                LOGGER.warn("RabbitMQ connection was suddenly disconnected.");
+                LOGGER.warn("MQ connection was suddenly disconnected.");
                 try {
                     if (connection != null && connection.isOpen()) {
                         connection.close();
@@ -203,7 +203,7 @@ public final class RabbitMQConnection implements ShutdownListener {
                 }
             }
         } else {
-            LOGGER.warn("RabbitMQ channel was suddenly disconnected.");
+            LOGGER.warn("MQ channel was suddenly disconnected.");
         }
     }
 }
