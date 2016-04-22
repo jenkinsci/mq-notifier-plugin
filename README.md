@@ -1,7 +1,7 @@
 # MQ Notifier Plugin
 
 This plugin sends a message to an MQ e.g. RabbitMQ each time a build is started
-and finished. The plugin also sends message every time a build is added and removed from the queue.
+and finished. The plugin also sends a message every time a build is added and removed from the queue.
 By extending this plugin, developers can add events for when to send messages.
 
 ## Maintainers
