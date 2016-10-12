@@ -107,9 +107,6 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     @Override
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
         req.bindJSON(this, formData);
-        if (formData.has("persistentDelivery")) {
-            this.persistentDelivery = formData.getBoolean("persistentDelivery");
-        }
         save();
         return true;
     }
@@ -157,6 +154,15 @@ public final class MQNotifierConfig extends GlobalConfiguration {
      */
     public Secret getUserPassword() {
         return this.userPassword;
+    }
+
+    /**
+     * Sets user password.
+     *
+     * @param userPassword the user password.
+     */
+    public void setUserPassword(Secret userPassword) {
+        this.userPassword = userPassword;
     }
 
     /**
@@ -236,7 +242,7 @@ public final class MQNotifierConfig extends GlobalConfiguration {
      *
      * @param pd if persistentDelivery is to be used.
      */
-    public void setDeliveryMode(boolean pd) {
+    public void setPersistentDelivery(boolean pd) {
         this.persistentDelivery = pd;
     }
 
