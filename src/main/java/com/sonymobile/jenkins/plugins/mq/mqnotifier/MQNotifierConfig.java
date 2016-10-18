@@ -94,6 +94,7 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.routingKey = routingKey;
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
+        MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
     }
 
     /**
