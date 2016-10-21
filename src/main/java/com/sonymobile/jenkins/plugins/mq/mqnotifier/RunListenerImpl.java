@@ -38,6 +38,7 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -142,6 +143,7 @@ public class RunListenerImpl extends RunListener<Run> {
             bob.appId(config.getAppId());
             bob.deliveryMode(dm);
             bob.contentType(Util.CONTENT_TYPE);
+            bob.timestamp(Calendar.getInstance().getTime());
             MQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }

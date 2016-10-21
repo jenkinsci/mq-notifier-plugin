@@ -30,6 +30,7 @@ import hudson.model.queue.QueueListener;
 import net.sf.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
 
 /**
  * Receives notifications about when tasks are submitted to the queue and publishes
@@ -79,6 +80,7 @@ public class QueueListenerImpl extends QueueListener {
             bob.appId(config.getAppId());
             bob.deliveryMode(dm);
             bob.contentType(Util.CONTENT_TYPE);
+            bob.timestamp(Calendar.getInstance().getTime());
             MQConnection.getInstance().send(config.getExchangeName(), config.getRoutingKey(),
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }
