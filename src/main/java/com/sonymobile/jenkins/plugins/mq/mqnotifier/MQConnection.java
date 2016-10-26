@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Creates an MQ connection.
@@ -48,6 +50,8 @@ import java.security.NoSuchAlgorithmException;
 public final class MQConnection implements ShutdownListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(MQConnection.class);
     private static final int HEARTBEAT_INTERVAL = 30;
+    private static final int MESSAGE_QUEUE_SIZE = 1000;
+    private static final int SENDMESSAGE_TIMEOUT = 100;
 
     private String userName;
     private Secret userPassword;
@@ -55,6 +59,8 @@ public final class MQConnection implements ShutdownListener {
     private String virtualHost;
     private Connection connection = null;
     private Channel channel = null;
+
+    private static LinkedBlockingQueue messageQueue;
 
     /**
      * Lazy-loaded singleton using the initialization-on-demand holder pattern.
@@ -76,6 +82,77 @@ public final class MQConnection implements ShutdownListener {
      */
     public static MQConnection getInstance() {
         return LazyRabbit.INSTANCE;
+    }
+
+    /**
+     * Stores data for a RabbitMQ message.
+     */
+    private static class MessageData {
+        private String exchange;
+        private String routingKey;
+        private AMQP.BasicProperties props;
+        private byte[] body;
+
+        private MessageData(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
+            this.exchange = exchange;
+            this.routingKey = routingKey;
+            this.props = props;
+            this.body = body;
+        }
+
+        private String getExchange() {
+            return exchange;
+        }
+
+        private String getRoutingKey() {
+            return routingKey;
+        }
+
+        private AMQP.BasicProperties getProps() {
+            return props;
+        }
+
+        private byte[] getBody() {
+            return body;
+        }
+    }
+
+    /**
+     * Puts a message in the message queue.
+     */
+    public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
+        if (messageQueue == null) {
+            messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    sendMessages();
+                }
+            }).start();
+        }
+
+        MessageData messageData = new MessageData(exchange, routingKey, props, body);
+        if (! messageQueue.offer(messageData)) {
+            LOGGER.error("addMessageToQueue() failed, RabbitMQ queue is full!");
+        }
+    }
+
+    /**
+     * Sends messages from the message queue.
+     */
+    private void sendMessages() {
+        while (true) {
+            try {
+                MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
+                                                                          TimeUnit.MILLISECONDS);
+                if (messageData != null) {
+                    getInstance().send(messageData.getExchange(), messageData.getRoutingKey(),
+                            messageData.getProps(), messageData.getBody());
+                }
+            } catch (InterruptedException ie) {
+                LOGGER.info("sendMessages() poll() was interrupted: ", ie);
+            }
+        }
     }
 
     /**
@@ -145,38 +222,45 @@ public final class MQConnection implements ShutdownListener {
 
     /**
      * Sends a message.
-     * *
+     * Keeps trying to get a connection indefinitely.
+     *
      * @param exchange the exchange to publish the message to
      * @param routingKey the routing key
      * @param props other properties for the message - routing headers etc
      * @param body the message body
      */
-    public void send(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
+    private void send(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
         if (exchange == null) {
             LOGGER.error("Invalid configuration, exchange must not be null.");
             return;
         }
-        try {
-            if (channel == null || !channel.isOpen()) {
-                channel = getConnection().createChannel();
-                if (!getConnection().getAddress().isLoopbackAddress()) {
-                    channel.exchangeDeclarePassive(exchange);
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Cannot create channel", e);
-            channel = null; // reset
-        } catch (ShutdownSignalException e) {
-            LOGGER.error("Cannot create channel", e);
-            channel = null; // reset
-        }
-        if (channel != null) {
+
+        while (true) {
             try {
-                channel.basicPublish(exchange, routingKey, props, body);
+                if (channel == null || !channel.isOpen()) {
+                    channel = getConnection().createChannel();
+                    if (!getConnection().getAddress().isLoopbackAddress()) {
+                        channel.exchangeDeclarePassive(exchange);
+                    }
+                }
             } catch (IOException e) {
-                LOGGER.error("Cannot publish message", e);
-            } catch (AlreadyClosedException e) {
-                LOGGER.error("Connection is already closed", e);
+                LOGGER.error("Cannot create channel", e);
+                channel = null; // reset
+            } catch (ShutdownSignalException e) {
+                LOGGER.error("Cannot create channel", e);
+                channel = null; // reset
+                break;
+            }
+            if (channel != null) {
+                try {
+                    channel.basicPublish(exchange, routingKey, props, body);
+                } catch (IOException e) {
+                    LOGGER.error("Cannot publish message", e);
+                } catch (AlreadyClosedException e) {
+                    LOGGER.error("Connection is already closed", e);
+                }
+
+                break;
             }
         }
     }
