@@ -7,7 +7,7 @@ By extending this plugin, developers can add events for when to send messages.
 ## Maintainers
 
 * Tomas Westling
-  - tomas.westling@sonymobile.com
+  - tomas.westling@axis.com
 
 # License
 ```
