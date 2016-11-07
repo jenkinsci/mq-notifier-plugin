@@ -94,7 +94,7 @@ public class PluginTest {
         conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
         String message = new String(MESSAGE);
 
-        conn.send(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());
+        conn.addMessageToQueue(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());
         assertEquals("Unmatched number of messages", 1, Mocks.MESSAGES.size());
         assertThat("Unmatched message contents", Mocks.MESSAGES.get(0), is(MESSAGE));
     }
