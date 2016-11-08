@@ -57,7 +57,7 @@ public final class Mocks {
     public static final class RabbitMQConnectionMock extends MockUp<MQConnection> {
 
         @Mock
-        public void send(String exchangeName, String routingKey, AMQP.BasicProperties props, byte[] body) {
+        public void addMessageToQueue(String exchangeName, String routingKey, AMQP.BasicProperties props, byte[] body) {
             String str = new String(body);
             MESSAGES.add(str);
         }

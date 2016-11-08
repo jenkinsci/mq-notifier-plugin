@@ -87,12 +87,20 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Stores data for a RabbitMQ message.
      */
-    private static class MessageData {
+    private static final class MessageData {
         private String exchange;
         private String routingKey;
         private AMQP.BasicProperties props;
         private byte[] body;
 
+        /**
+         * Constructor.
+         *
+         * @param exchange the exchange to publish the message to
+         * @param routingKey the routing key
+         * @param props other properties for the message - routing headers etc
+         * @param body the message body
+         */
         private MessageData(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
             this.exchange = exchange;
             this.routingKey = routingKey;
@@ -100,18 +108,38 @@ public final class MQConnection implements ShutdownListener {
             this.body = body;
         }
 
+        /**
+         * Gets the exchange name.
+         *
+         * @return the exchange name
+         */
         private String getExchange() {
             return exchange;
         }
 
+        /**
+         * Gets the routing key.
+         *
+         * @return the routing key
+         */
         private String getRoutingKey() {
             return routingKey;
         }
 
+        /**
+         * Gets the connection properties.
+         *
+         * @return the connection properties
+         */
         private AMQP.BasicProperties getProps() {
             return props;
         }
 
+        /**
+         * Gets the message body.
+         *
+         * @return the message body
+         */
         private byte[] getBody() {
             return body;
         }
@@ -119,6 +147,11 @@ public final class MQConnection implements ShutdownListener {
 
     /**
      * Puts a message in the message queue.
+     *
+     * @param exchange the exchange to publish the message to
+     * @param routingKey the routing key
+     * @param props other properties for the message - routing headers etc
+     * @param body the message body
      */
     public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
         if (messageQueue == null) {
@@ -132,7 +165,7 @@ public final class MQConnection implements ShutdownListener {
         }
 
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
-        if (! messageQueue.offer(messageData)) {
+        if (!messageQueue.offer(messageData)) {
             LOGGER.error("addMessageToQueue() failed, RabbitMQ queue is full!");
         }
     }
@@ -143,8 +176,8 @@ public final class MQConnection implements ShutdownListener {
     private void sendMessages() {
         while (true) {
             try {
-                MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
-                                                                          TimeUnit.MILLISECONDS);
+                MessageData messageData = (MessageData)messageQueue.poll(SENDMESSAGE_TIMEOUT,
+                                                                         TimeUnit.MILLISECONDS);
                 if (messageData != null) {
                     getInstance().send(messageData.getExchange(), messageData.getRoutingKey(),
                             messageData.getProps(), messageData.getBody());
