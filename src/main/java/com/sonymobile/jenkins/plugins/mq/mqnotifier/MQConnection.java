@@ -251,6 +251,8 @@ public final class MQConnection implements ShutdownListener {
         userPassword = password;
         serverUri = uri;
         virtualHost = vh;
+        connection = null;
+        channel = null;
     }
 
     /**
@@ -271,9 +273,12 @@ public final class MQConnection implements ShutdownListener {
         while (true) {
             try {
                 if (channel == null || !channel.isOpen()) {
-                    channel = getConnection().createChannel();
-                    if (!getConnection().getAddress().isLoopbackAddress()) {
-                        channel.exchangeDeclarePassive(exchange);
+                    connection = getConnection();
+                    if (connection != null) {
+                        channel = connection.createChannel();
+                        if (!getConnection().getAddress().isLoopbackAddress()) {
+                            channel.exchangeDeclarePassive(exchange);
+                        }
                     }
                 }
             } catch (IOException e) {

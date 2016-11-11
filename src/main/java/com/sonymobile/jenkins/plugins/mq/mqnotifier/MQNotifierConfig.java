@@ -94,7 +94,6 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.routingKey = routingKey;
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
-        MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
     }
 
     /**
@@ -109,6 +108,7 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
         req.bindJSON(this, formData);
         save();
+        MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
         return true;
     }
 
