@@ -52,6 +52,7 @@ public final class MQConnection implements ShutdownListener {
     private static final int HEARTBEAT_INTERVAL = 30;
     private static final int MESSAGE_QUEUE_SIZE = 1000;
     private static final int SENDMESSAGE_TIMEOUT = 100;
+    private static final int CONNECTION_WAIT = 10000;
 
     private String userName;
     private Secret userPassword;
@@ -299,6 +300,12 @@ public final class MQConnection implements ShutdownListener {
                 }
 
                 break;
+            } else {
+                try {
+                    Thread.sleep(CONNECTION_WAIT);
+                } catch (InterruptedException ie) {
+                    LOGGER.error("Thread.sleep() was interrupted", ie);
+                }
             }
         }
     }
