@@ -91,7 +91,10 @@ public class RunListenerImpl extends RunListener<Run> {
             JSONObject json = new JSONObject();
             json.put(Util.KEY_STATE, Util.VALUE_STARTED);
             json.put(Util.KEY_URL, Util.getJobUrl(r));
-            json.put(Util.KEY_CAUSES, causes.toString());
+            for (String buildKey : build.getBuildVariables().keySet()) {
+                causes.add(buildKey + "=" + build.getBuildVariables().get(buildKey));
+            }
+            json.put(Util.KEY_CAUSES, causes);
             publish(json);
         }
     }
@@ -109,6 +112,11 @@ public class RunListenerImpl extends RunListener<Run> {
                 status = res.toString();
             }
             json.put(Util.KEY_STATUS, status);
+            List<String> causes = new LinkedList<String>();
+            for (String buildKey : build.getBuildVariables().keySet()) {
+                causes.add(buildKey + "=" + build.getBuildVariables().get(buildKey));
+            }
+            json.put(Util.KEY_CAUSES, causes);
             publish(json);
         }
     }

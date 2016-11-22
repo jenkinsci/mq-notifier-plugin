@@ -61,6 +61,8 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_BUILDING);
         }
         json.put(Util.KEY_URL, Util.getJobUrl(li));
+        String[] params = li.getParams().substring(1).split("\n");   // Remove leading '\n'.
+        json.put(Util.KEY_CAUSES, params);
         publish(json);
     }
 
