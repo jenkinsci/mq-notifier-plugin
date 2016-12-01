@@ -92,6 +92,11 @@ public class RunListenerImpl extends RunListener<Run> {
             json.put(Util.KEY_STATE, Util.VALUE_STARTED);
             json.put(Util.KEY_URL, Util.getJobUrl(r));
             json.put(Util.KEY_CAUSES, causes.toString());
+            List<String> parameters = new LinkedList<String>();
+            for (String buildKey : build.getBuildVariables().keySet()) {
+                parameters.add(buildKey + "=" + build.getBuildVariables().get(buildKey));
+            }
+            json.put(Util.KEY_PARAMETERS, parameters);
             publish(json);
         }
     }
@@ -109,6 +114,11 @@ public class RunListenerImpl extends RunListener<Run> {
                 status = res.toString();
             }
             json.put(Util.KEY_STATUS, status);
+            List<String> parameters = new LinkedList<String>();
+            for (String buildKey : build.getBuildVariables().keySet()) {
+                parameters.add(buildKey + "=" + build.getBuildVariables().get(buildKey));
+            }
+            json.put(Util.KEY_PARAMETERS, parameters);
             publish(json);
         }
     }

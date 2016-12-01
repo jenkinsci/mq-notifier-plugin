@@ -44,6 +44,8 @@ public final class Util {
     public static final String KEY_DEQUEUE_REASON = "dequeue_reason";
     /**Status Key. */
     public static final String KEY_STATUS = "status";
+    /**Params Key. */
+    public static final String KEY_PARAMETERS = "parameters";
     /**Queued Value. */
     public static final String VALUE_ADDED_TO_QUEUE = "QUEUED";
     /**Dequeued Value. */
