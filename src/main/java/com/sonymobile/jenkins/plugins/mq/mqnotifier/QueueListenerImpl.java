@@ -46,8 +46,12 @@ public class QueueListenerImpl extends QueueListener {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_ADDED_TO_QUEUE);
         json.put(Util.KEY_URL, Util.getJobUrl(wi));
-        String[] parameters = wi.getParams().substring(1).split("\n");   // Remove leading '\n'.
-        json.put(Util.KEY_PARAMETERS, parameters);
+        String[] parametersArray = new String[0];
+        String parameters = wi.getParams();
+        if (parameters.length() > 0) {
+            parametersArray = parameters.substring(1).split("\n");   // Remove leading '\n'.
+        }
+        json.put(Util.KEY_PARAMETERS, parametersArray);
         publish(json);
     }
 
@@ -61,8 +65,12 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_BUILDING);
         }
         json.put(Util.KEY_URL, Util.getJobUrl(li));
-        String[] parameters = li.getParams().substring(1).split("\n");   // Remove leading '\n'.
-        json.put(Util.KEY_PARAMETERS, parameters);
+        String[] parametersArray = new String[0];
+        String parameters = li.getParams();
+        if (parameters.length() > 0) {
+            parametersArray = parameters.substring(1).split("\n");   // Remove leading '\n'.
+        }
+        json.put(Util.KEY_PARAMETERS, parametersArray);
         publish(json);
     }
 
