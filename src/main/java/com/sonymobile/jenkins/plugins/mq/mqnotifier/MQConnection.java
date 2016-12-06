@@ -62,6 +62,7 @@ public final class MQConnection implements ShutdownListener {
     private Channel channel = null;
 
     private static LinkedBlockingQueue messageQueue;
+    private static Thread messageQueueThread;
 
     /**
      * Lazy-loaded singleton using the initialization-on-demand holder pattern.
@@ -157,12 +158,17 @@ public final class MQConnection implements ShutdownListener {
     public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
         if (messageQueue == null) {
             messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
-            new Thread(new Runnable() {
+        }
+
+        if (messageQueueThread == null || !messageQueueThread.isAlive()) {
+            messageQueueThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     sendMessages();
                 }
-            }).start();
+            });
+            messageQueueThread.start();
+            LOGGER.info("messageQueueThread recreated since it was null or not alive.");
         }
 
         MessageData messageData = new MessageData(exchange, routingKey, props, body);

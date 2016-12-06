@@ -26,17 +26,23 @@ package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.PossibleAuthenticationFailureException;
 import hudson.Extension;
+import hudson.Plugin;
+import hudson.model.Describable;
+import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 /**
@@ -45,8 +51,9 @@ import java.net.URISyntaxException;
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
 @Extension
-public final class MQNotifierConfig extends GlobalConfiguration {
-    private final String[] schemes = { "amqp", "amqps" };
+public final class MQNotifierConfig extends Plugin implements Describable<MQNotifierConfig> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MQNotifierConfig.class);
+    private final String[] schemes = {"amqp", "amqps"};
     private static final String SERVER_URI = "serverUri";
     private static final String USERNAME = "userName";
     private static final String PASSWORD = "userPassword";
@@ -74,14 +81,14 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     /**
      * Creates an instance with specified parameters.
      *
-     * @param serverUri the server uri
-     * @param userName the user name
-     * @param userPassword the user password
-     * @param exchangeName the name of the exchange
-     * @param virtualHost the name of the virtual host
-     * @param routingKey the routing key
+     * @param serverUri          the server uri
+     * @param userName           the user name
+     * @param userPassword       the user password
+     * @param exchangeName       the name of the exchange
+     * @param virtualHost        the name of the virtual host
+     * @param routingKey         the routing key
      * @param persistentDelivery if using persistent delivery mode
-     * @param appId the application id
+     * @param appId              the application id
      */
     @DataBoundConstructor
     public MQNotifierConfig(String serverUri, String userName, Secret userPassword, String exchangeName,
@@ -96,20 +103,27 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.appId = appId;
     }
 
+    @Override
+    public void start() throws Exception {
+        super.start();
+        LOGGER.info("Starting MQNotifier Plugin");
+        load();
+        MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
+    }
+
     /**
      * Load configuration on invoke.
      */
     public MQNotifierConfig() {
         this.persistentDelivery = true; // default value
-        load();
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+    public void configure(StaplerRequest req, JSONObject formData) throws IOException, ServletException,
+            Descriptor.FormException {
         req.bindJSON(this, formData);
         save();
         MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
-        return true;
     }
 
     /**
@@ -168,11 +182,20 @@ public final class MQNotifierConfig extends GlobalConfiguration {
 
     /**
      * Gets this extension's instance.
+     * <p>
+     * If {@link jenkins.model.Jenkins#getInstance()} isn't available
+     * or the plugin class isn't registered null will be returned.
      *
      * @return the instance of this extension.
      */
-    public static MQNotifierConfig get() {
-        return GlobalConfiguration.all().get(MQNotifierConfig.class);
+    public static MQNotifierConfig getInstance() {
+        Jenkins jenkins = Jenkins.getInstance();
+        if (jenkins != null) {
+            return jenkins.getPlugin(MQNotifierConfig.class);
+        } else {
+            LOGGER.error("Error, Jenkins could not be found, so no plugin!");
+            return null;
+        }
     }
 
     /**
@@ -265,43 +288,64 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.appId = appId;
     }
 
-    /**
-     * Tests connection to the server URI.
-     *
-     * @param uri the URI.
-     * @param name the user name.
-     * @param pw the user password.
-     * @return FormValidation object that indicates ok or error.
-     * @throws javax.servlet.ServletException Exception for servlet.
-     */
-    public FormValidation doTestConnection(@QueryParameter(SERVER_URI) final String uri,
-                                           @QueryParameter(USERNAME) final String name,
-                                           @QueryParameter(PASSWORD) final Secret pw) throws ServletException {
-        UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
-        FormValidation result = FormValidation.ok();
-        if (urlValidator.isValid(uri)) {
-            try {
-                ConnectionFactory conn = new ConnectionFactory();
-                conn.setUri(uri);
-                if (StringUtils.isNotEmpty(name)) {
-                    conn.setUsername(name);
-                    if (StringUtils.isNotEmpty(Secret.toString(pw))) {
-                        conn.setPassword(Secret.toString(pw));
-                    }
-                }
-                conn.newConnection();
-            } catch (URISyntaxException e) {
-                result = FormValidation.error("Invalid Uri");
-            } catch (PossibleAuthenticationFailureException e) {
-                result = FormValidation.error("Authentication Failure");
-            } catch (Exception e) {
-                result = FormValidation.error(e.getMessage());
-            }
-        } else {
-            result = FormValidation.error("Invalid Uri");
 
+    /**
+     * Returns the descriptor instance.
+     *
+     * @return descriptor instance.
+     */
+    @Override
+    public Descriptor<MQNotifierConfig> getDescriptor() {
+        return Jenkins.getInstance().getDescriptorOrDie(getClass());
+    }
+
+    /**
+     * Implementation of the Descriptor interface.
+     */
+    @Extension
+    public static final class DescriptorImpl extends Descriptor<MQNotifierConfig> {
+        @Override
+        public String getDisplayName() {
+            return "MQ Notifier Plugin";
         }
-        return result;
+
+        /**
+         * Tests connection to the server URI.
+         *
+         * @param uri the URI.
+         * @param name the user name.
+         * @param pw the user password.
+         * @return FormValidation object that indicates ok or error.
+         * @throws javax.servlet.ServletException Exception for servlet.
+         */
+        public FormValidation doTestConnection(@QueryParameter(SERVER_URI) final String uri,
+                                               @QueryParameter(USERNAME) final String name,
+                                               @QueryParameter(PASSWORD) final Secret pw) throws ServletException {
+            UrlValidator urlValidator = new UrlValidator(getInstance().schemes, UrlValidator.ALLOW_LOCAL_URLS);
+            FormValidation result = FormValidation.ok();
+            if (urlValidator.isValid(uri)) {
+                try {
+                    ConnectionFactory conn = new ConnectionFactory();
+                    conn.setUri(uri);
+                    if (StringUtils.isNotEmpty(name)) {
+                        conn.setUsername(name);
+                        if (StringUtils.isNotEmpty(Secret.toString(pw))) {
+                            conn.setPassword(Secret.toString(pw));
+                        }
+                    }
+                    conn.newConnection();
+                } catch (URISyntaxException e) {
+                    result = FormValidation.error("Invalid Uri");
+                } catch (PossibleAuthenticationFailureException e) {
+                    result = FormValidation.error("Authentication Failure");
+                } catch (Exception e) {
+                    result = FormValidation.error(e.getMessage());
+                }
+            } else {
+                result = FormValidation.error("Invalid Uri");
+            }
+            return result;
+        }
     }
 
 }
