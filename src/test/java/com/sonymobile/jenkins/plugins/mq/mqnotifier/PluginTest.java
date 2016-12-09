@@ -84,7 +84,7 @@ public class PluginTest {
     @Test
     public void testConnection() {
         MQConnection conn = MQConnection.getInstance();
-        MQNotifierConfig config = MQNotifierConfig.get();
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
         assertNotNull("No config available: MQNotifierConfig", config);
         config.setExchangeName(EXCHANGE);
         config.setServerUri(URI);

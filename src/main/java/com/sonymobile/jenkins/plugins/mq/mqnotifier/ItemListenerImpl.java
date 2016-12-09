@@ -49,7 +49,7 @@ public class ItemListenerImpl extends ItemListener {
     @Override
     public final void onLoaded() {
         LOGGER.info("All jobs have been loaded.");
-        MQNotifierConfig config = MQNotifierConfig.get();
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
         MQConnection.getInstance().initialize(config.getUserName(), config.getUserPassword(),
                 config.getServerUri(), config.getVirtualHost());
         super.onLoaded();

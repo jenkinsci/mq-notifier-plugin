@@ -142,7 +142,7 @@ public class RunListenerImpl extends RunListener<Run> {
      */
     private void publish(JSONObject json) {
         if (config == null) {
-            config = MQNotifierConfig.get();
+            config = MQNotifierConfig.getInstance();
         }
         if (config != null) {
             AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
