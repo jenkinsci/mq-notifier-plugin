@@ -29,6 +29,9 @@ import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.ParametersAction;
+import hudson.model.ParameterValue;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -61,17 +64,15 @@ public class RunListenerImpl extends RunListener<Run> {
 
     @Override
     public void onStarted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            AbstractBuild<?, ?> build = (AbstractBuild<?, ?>)r;
-            List<String> causes = new LinkedList<String>();
-            for (Object o : build.getCauses()) {
-                causes.add(o.getClass().getSimpleName());
-            }
+        List<String> causes = new LinkedList<String>();
+        for (Object o : r.getCauses()) {
+            causes.add(o.getClass().getSimpleName());
+        }
 
-            Cause.UpstreamCause upstreamCause = (Cause.UpstreamCause)r.getCause(Cause.UpstreamCause.class);
-            if (upstreamCause != null) {
+        for (Cause cause : r.getAction(CauseAction.class).getCauses()) {
+            if (cause instanceof Cause.UpstreamCause) {
+                Cause.UpstreamCause upstreamCause = (Cause.UpstreamCause)cause;
                 causes.add(upstreamCause.getShortDescription());
-
                 TopLevelItem item = Jenkins.getInstance().getItem(upstreamCause.getUpstreamProject());
                 if (item != null && item instanceof MatrixProject) {
                     //Find the build
@@ -79,49 +80,59 @@ public class RunListenerImpl extends RunListener<Run> {
                     causes.add(mb.getUrl());
                 }
             }
-            Cause.RemoteCause remoteCause = (Cause.RemoteCause)r.getCause(Cause.RemoteCause.class);
-            if (remoteCause != null) {
-                causes.add(remoteCause.getShortDescription());
-            }
-            Cause.UserIdCause userIdCause = (Cause.UserIdCause)r.getCause(Cause.UserIdCause.class);
-            if (userIdCause != null) {
-                causes.add(userIdCause.getShortDescription());
-            }
-
-            JSONObject json = new JSONObject();
-            json.put(Util.KEY_STATE, Util.VALUE_STARTED);
-            json.put(Util.KEY_URL, Util.getJobUrl(r));
-            json.put(Util.KEY_CAUSES, causes.toString());
-            List<String> parameters = new LinkedList<String>();
-            for (String buildKey : build.getBuildVariables().keySet()) {
-                parameters.add(buildKey + "=" + build.getBuildVariables().get(buildKey));
-            }
-            json.put(Util.KEY_PARAMETERS, parameters);
-            publish(json);
         }
+        Cause.RemoteCause remoteCause = (Cause.RemoteCause)r.getCause(Cause.RemoteCause.class);
+        if (remoteCause != null) {
+            causes.add(remoteCause.getShortDescription());
+        }
+        Cause.UserIdCause userIdCause = (Cause.UserIdCause)r.getCause(Cause.UserIdCause.class);
+        if (userIdCause != null) {
+            causes.add(userIdCause.getShortDescription());
+        }
+
+        JSONObject json = new JSONObject();
+        json.put(Util.KEY_STATE, Util.VALUE_STARTED);
+        json.put(Util.KEY_URL, Util.getJobUrl(r));
+        json.put(Util.KEY_CAUSES, causes.toString());
+        List<String> parameters = new LinkedList<String>();
+        ParametersAction parametersAction = r.getAction(ParametersAction.class);
+        if (parametersAction != null) {
+            List<ParameterValue> parameterValues = parametersAction.getParameters();
+            if (parameterValues != null) {
+                for (ParameterValue parameterValue : parameterValues) {
+                    parameters.add(parameterValue.getName() + "=" + parameterValue.getValue());
+                }
+            }
+        }
+        json.put(Util.KEY_PARAMETERS, parameters);
+        publish(json);
     }
 
     @Override
     public void onCompleted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            AbstractBuild<?, ?> build = (AbstractBuild<?, ?>)r;
-            JSONObject json = new JSONObject();
-            json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
-            json.put(Util.KEY_URL, Util.getJobUrl(r));
-            String status = "";
-            Result res = build.getResult();
-            if (res != null) {
-                status = res.toString();
-            }
-            json.put(Util.KEY_STATUS, status);
-            List<String> parameters = new LinkedList<String>();
-            for (String buildKey : build.getBuildVariables().keySet()) {
-                parameters.add(buildKey + "=" + build.getBuildVariables().get(buildKey));
-            }
-            json.put(Util.KEY_PARAMETERS, parameters);
-            publish(json);
+        JSONObject json = new JSONObject();
+        json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
+        json.put(Util.KEY_URL, Util.getJobUrl(r));
+        String status = "";
+        Result res = r.getResult();
+        if (res != null) {
+            status = res.toString();
         }
+        json.put(Util.KEY_STATUS, status);
+        List<String> parameters = new LinkedList<String>();
+        ParametersAction parametersAction = r.getAction(ParametersAction.class);
+        if (parametersAction != null) {
+            List<ParameterValue> parameterValues = parametersAction.getParameters();
+            if (parameterValues != null) {
+                for (ParameterValue parameterValue : parameterValues) {
+                    parameters.add(parameterValue.getName() + "=" + parameterValue.getValue());
+                }
+            }
+        }
+        json.put(Util.KEY_PARAMETERS, parameters);
+        publish(json);
     }
+
     @Override
     public void onDeleted(Run r) {
         if (r instanceof AbstractBuild) {
