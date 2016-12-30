@@ -24,6 +24,7 @@
 package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.AMQP;
+import com.sonymobile.jenkins.plugins.mq.mqnotifier.providers.MQDataProvider;
 import hudson.Extension;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
@@ -46,12 +47,9 @@ public class QueueListenerImpl extends QueueListener {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_ADDED_TO_QUEUE);
         json.put(Util.KEY_URL, Util.getJobUrl(wi));
-        String[] parametersArray = new String[0];
-        String parameters = wi.getParams();
-        if (parameters.length() > 0) {
-            parametersArray = parameters.substring(1).split("\n");   // Remove leading '\n'.
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideEnterWaitingQueueData(wi, json);
         }
-        json.put(Util.KEY_PARAMETERS, parametersArray);
         publish(json);
     }
 
@@ -65,12 +63,10 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_BUILDING);
         }
         json.put(Util.KEY_URL, Util.getJobUrl(li));
-        String[] parametersArray = new String[0];
-        String parameters = li.getParams();
-        if (parameters.length() > 0) {
-            parametersArray = parameters.substring(1).split("\n");   // Remove leading '\n'.
+
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideLeftQueueData(li, json);
         }
-        json.put(Util.KEY_PARAMETERS, parametersArray);
         publish(json);
     }
 

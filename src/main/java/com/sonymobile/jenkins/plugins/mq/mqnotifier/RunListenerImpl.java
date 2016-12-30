@@ -24,26 +24,18 @@
 package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import com.rabbitmq.client.AMQP;
+import com.sonymobile.jenkins.plugins.mq.mqnotifier.providers.MQDataProvider;
 import hudson.Extension;
-import hudson.matrix.MatrixBuild;
-import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.ParametersAction;
-import hudson.model.ParameterValue;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.model.TopLevelItem;
 import hudson.model.listeners.RunListener;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
+
 
 /**
  * Receives notifications about builds and publish messages on configured MQ server.
@@ -64,47 +56,13 @@ public class RunListenerImpl extends RunListener<Run> {
 
     @Override
     public void onStarted(Run r, TaskListener listener) {
-        List<String> causes = new LinkedList<String>();
-        for (Object o : r.getCauses()) {
-            causes.add(o.getClass().getSimpleName());
-        }
-
-        for (Cause cause : r.getAction(CauseAction.class).getCauses()) {
-            if (cause instanceof Cause.UpstreamCause) {
-                Cause.UpstreamCause upstreamCause = (Cause.UpstreamCause)cause;
-                causes.add(upstreamCause.getShortDescription());
-                TopLevelItem item = Jenkins.getInstance().getItem(upstreamCause.getUpstreamProject());
-                if (item != null && item instanceof MatrixProject) {
-                    //Find the build
-                    MatrixBuild mb = ((MatrixProject)item).getBuildByNumber(upstreamCause.getUpstreamBuild());
-                    causes.add(mb.getUrl());
-                }
-            }
-        }
-        Cause.RemoteCause remoteCause = (Cause.RemoteCause)r.getCause(Cause.RemoteCause.class);
-        if (remoteCause != null) {
-            causes.add(remoteCause.getShortDescription());
-        }
-        Cause.UserIdCause userIdCause = (Cause.UserIdCause)r.getCause(Cause.UserIdCause.class);
-        if (userIdCause != null) {
-            causes.add(userIdCause.getShortDescription());
-        }
-
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_STARTED);
         json.put(Util.KEY_URL, Util.getJobUrl(r));
-        json.put(Util.KEY_CAUSES, causes.toString());
-        List<String> parameters = new LinkedList<String>();
-        ParametersAction parametersAction = r.getAction(ParametersAction.class);
-        if (parametersAction != null) {
-            List<ParameterValue> parameterValues = parametersAction.getParameters();
-            if (parameterValues != null) {
-                for (ParameterValue parameterValue : parameterValues) {
-                    parameters.add(parameterValue.getName() + "=" + parameterValue.getValue());
-                }
-            }
+
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideStartRunData(r, json);
         }
-        json.put(Util.KEY_PARAMETERS, parameters);
         publish(json);
     }
 
@@ -119,17 +77,9 @@ public class RunListenerImpl extends RunListener<Run> {
             status = res.toString();
         }
         json.put(Util.KEY_STATUS, status);
-        List<String> parameters = new LinkedList<String>();
-        ParametersAction parametersAction = r.getAction(ParametersAction.class);
-        if (parametersAction != null) {
-            List<ParameterValue> parameterValues = parametersAction.getParameters();
-            if (parameterValues != null) {
-                for (ParameterValue parameterValue : parameterValues) {
-                    parameters.add(parameterValue.getName() + "=" + parameterValue.getValue());
-                }
-            }
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideCompletedRunData(r, json);
         }
-        json.put(Util.KEY_PARAMETERS, parameters);
         publish(json);
     }
 
