@@ -40,6 +40,12 @@ public final class Util {
     public static final String KEY_STATE = "state";
     /**Dequeue Reason Key. */
     public static final String KEY_DEQUEUE_REASON = "dequeue_reason";
+    /**Dequeue Time Spent in Queue in ms. */
+    public static final String KEY_DEQUEUE_TIME_SPENT = "time_spent_in_queue";
+    /**Dequeue Allocated Label. */
+    public static final String KEY_DEQUEUE_ALLOCATED_LABEL = "allocated_label";
+    /**Dequeue No Label. */
+    public static final String KEY_DEQUEUE_NO_LABEL = "NO_LABEL";
     /**Status Key. */
     public static final String KEY_STATUS = "status";
     /**Queued Value. */
