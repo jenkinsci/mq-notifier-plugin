@@ -26,6 +26,7 @@ package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 import com.rabbitmq.client.AMQP;
 import com.sonymobile.jenkins.plugins.mq.mqnotifier.providers.MQDataProvider;
 import hudson.Extension;
+import hudson.model.Label;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 import net.sf.json.JSONObject;
@@ -61,6 +62,10 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_CANCELLED);
         } else {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_BUILDING);
+            Label assignedLabel = li.getAssignedLabel();
+            json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,
+                assignedLabel != null ? assignedLabel.getDisplayName() : Util.KEY_DEQUEUE_NO_LABEL);
+            json.put(Util.KEY_DEQUEUE_TIME_SPENT, System.currentTimeMillis() - li.getInQueueSince());
         }
         json.put(Util.KEY_URL, Util.getJobUrl(li));
 
