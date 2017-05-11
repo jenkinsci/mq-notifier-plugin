@@ -68,6 +68,8 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_TIME_SPENT, System.currentTimeMillis() - li.getInQueueSince());
         }
         json.put(Util.KEY_URL, Util.getJobUrl(li));
+        json.put(Util.KEY_PROJECT_NAME, li.task.getFullDisplayName());
+        json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
 
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideLeftQueueData(li, json);
