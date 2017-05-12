@@ -28,14 +28,24 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 /**
  * Constants and helper functions.
  * @author Tomas Westling &lt;tomas.westling@sonymobile.com&gt;
  */
 public final class Util {
+    private static String hostName = null;
 
     /**Url Key. */
     public static final String KEY_URL = "url";
+    /**Name Key. */
+    public static final String KEY_PROJECT_NAME = "build_job_name";
+    /**BuildNr Key. */
+    public static final String KEY_BUILD_NR = "build_number";
+    /**Master FQDN Key. */
+    public static final String KEY_MASTER_FQDN = "jenkins_master_fqdn";
     /**State Key. */
     public static final String KEY_STATE = "state";
     /**Dequeue Reason Key. */
@@ -48,6 +58,8 @@ public final class Util {
     public static final String KEY_DEQUEUE_NO_LABEL = "NO_LABEL";
     /**Status Key. */
     public static final String KEY_STATUS = "status";
+    /**Unknown host Value. */
+    public static final String VALUE_UNRESOLVED_HOST = "unknown_host";
     /**Queued Value. */
     public static final String VALUE_ADDED_TO_QUEUE = "QUEUED";
     /**Dequeued Value. */
@@ -101,5 +113,21 @@ public final class Util {
         } else {
             return r.getUrl();
         }
+    }
+
+    /**
+     * Fetches and caches the jenkins master FQDN.
+     *
+     * @return hostname
+     */
+    public static String getHostName() {
+        if (hostName == null) {
+            try {
+                hostName = InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException e) {
+                return VALUE_UNRESOLVED_HOST;
+            }
+        }
+        return hostName;
     }
 }
