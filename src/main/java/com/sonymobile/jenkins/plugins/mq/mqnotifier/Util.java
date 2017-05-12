@@ -24,6 +24,7 @@
 package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
 import hudson.Functions;
+import hudson.model.AbstractItem;
 import hudson.model.Queue;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
@@ -129,5 +130,19 @@ public final class Util {
             }
         }
         return hostName;
+    }
+
+    /**
+     * Fetches the full name task name if available.
+     *
+     * @param t task
+     * @return full name if available, else the short name
+     */
+    public static String getFullName(Queue.Task t) {
+        if (t instanceof AbstractItem) {
+            return ((AbstractItem)t).getFullName();
+        } else {
+            return t.getName();
+        }
     }
 }

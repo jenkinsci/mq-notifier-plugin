@@ -43,11 +43,27 @@ import java.util.Calendar;
 public class QueueListenerImpl extends QueueListener {
     private static MQNotifierConfig config;
 
+    /**
+     * Populates the json with common data for Queue items.
+     *
+     * @param json The resulting JSONObject
+     * @param i queue item
+     */
+    public void populateCommon(JSONObject json, Queue.Item i){
+        json.put(Util.KEY_URL, Util.getJobUrl(i));
+        json.put(Util.KEY_PROJECT_NAME, Util.getFullName(i.task));
+        json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+
+        Label assignedLabel = i.getAssignedLabel();
+        json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,
+                assignedLabel != null ? assignedLabel.getDisplayName() : Util.VALUE_DEQUEUE_NO_LABEL);
+    }
+
     @Override
     public void onEnterWaiting(Queue.WaitingItem wi) {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_ADDED_TO_QUEUE);
-        json.put(Util.KEY_URL, Util.getJobUrl(wi));
+        populateCommon(json, wi);
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideEnterWaitingQueueData(wi, json);
         }
@@ -62,14 +78,9 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_CANCELLED);
         } else {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_BUILDING);
-            Label assignedLabel = li.getAssignedLabel();
-            json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,
-                assignedLabel != null ? assignedLabel.getDisplayName() : Util.VALUE_DEQUEUE_NO_LABEL);
             json.put(Util.KEY_DEQUEUE_TIME_SPENT, System.currentTimeMillis() - li.getInQueueSince());
         }
-        json.put(Util.KEY_URL, Util.getJobUrl(li));
-        json.put(Util.KEY_PROJECT_NAME, li.task.getFullDisplayName());
-        json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+        populateCommon(json, li);
 
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideLeftQueueData(li, json);
