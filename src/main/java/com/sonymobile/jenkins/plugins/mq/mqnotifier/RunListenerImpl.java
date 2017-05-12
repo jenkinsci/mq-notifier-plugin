@@ -59,7 +59,7 @@ public class RunListenerImpl extends RunListener<Run> {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_STARTED);
         json.put(Util.KEY_URL, Util.getJobUrl(r));
-        json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullDisplayName());
+        json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
         json.put(Util.KEY_BUILD_NR, r.getNumber());
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
 
@@ -74,7 +74,7 @@ public class RunListenerImpl extends RunListener<Run> {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
         json.put(Util.KEY_URL, Util.getJobUrl(r));
-        json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullDisplayName());
+        json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
         json.put(Util.KEY_BUILD_NR, r.getNumber());
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
         String status = "";
@@ -97,7 +97,7 @@ public class RunListenerImpl extends RunListener<Run> {
             JSONObject json = new JSONObject();
             json.put(Util.KEY_STATE, Util.VALUE_DELETED);
             json.put(Util.KEY_URL, Util.getJobUrl(r));
-            json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullDisplayName());
+            json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
             json.put(Util.KEY_BUILD_NR, r.getNumber());
             json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
             json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
