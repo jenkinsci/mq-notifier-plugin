@@ -54,10 +54,10 @@ public final class Util {
     public static final String KEY_DEQUEUE_TIME_SPENT = "time_spent_in_queue";
     /**Dequeue Allocated Label. */
     public static final String KEY_DEQUEUE_ALLOCATED_LABEL = "allocated_label";
-    /**Dequeue No Label. */
-    public static final String KEY_DEQUEUE_NO_LABEL = "NO_LABEL";
     /**Status Key. */
     public static final String KEY_STATUS = "status";
+    /**Dequeue No Label. */
+    public static final String VALUE_DEQUEUE_NO_LABEL = "NO_LABEL";
     /**Unknown host Value. */
     public static final String VALUE_UNRESOLVED_HOST = "unknown_host";
     /**Queued Value. */

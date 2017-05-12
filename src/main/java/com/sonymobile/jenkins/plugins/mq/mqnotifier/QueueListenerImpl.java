@@ -64,7 +64,7 @@ public class QueueListenerImpl extends QueueListener {
             json.put(Util.KEY_DEQUEUE_REASON, Util.VALUE_BUILDING);
             Label assignedLabel = li.getAssignedLabel();
             json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,
-                assignedLabel != null ? assignedLabel.getDisplayName() : Util.KEY_DEQUEUE_NO_LABEL);
+                assignedLabel != null ? assignedLabel.getDisplayName() : Util.VALUE_DEQUEUE_NO_LABEL);
             json.put(Util.KEY_DEQUEUE_TIME_SPENT, System.currentTimeMillis() - li.getInQueueSince());
         }
         json.put(Util.KEY_URL, Util.getJobUrl(li));
