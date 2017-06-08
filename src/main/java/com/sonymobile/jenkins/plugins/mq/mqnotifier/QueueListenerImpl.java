@@ -49,7 +49,7 @@ public class QueueListenerImpl extends QueueListener {
      * @param json The resulting JSONObject
      * @param i queue item
      */
-    public void populateCommon(JSONObject json, Queue.Item i){
+    public void populateCommon(JSONObject json, Queue.Item i) {
         json.put(Util.KEY_URL, Util.getJobUrl(i));
         json.put(Util.KEY_PROJECT_NAME, Util.getFullName(i.task));
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());

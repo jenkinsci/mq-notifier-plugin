@@ -55,15 +55,18 @@ public class CauseProvider extends MQDataProvider {
             causes.add(o.getClass().getSimpleName());
         }
 
-        for (Cause cause : run.getAction(CauseAction.class).getCauses()) {
-            if (cause instanceof Cause.UpstreamCause) {
-                Cause.UpstreamCause upstreamCause = (Cause.UpstreamCause)cause;
-                causes.add(upstreamCause.getShortDescription());
-                TopLevelItem item = Jenkins.getInstance().getItem(upstreamCause.getUpstreamProject());
-                if (item != null && item instanceof MatrixProject) {
-                    //Find the build
-                    MatrixBuild mb = ((MatrixProject)item).getBuildByNumber(upstreamCause.getUpstreamBuild());
-                    causes.add(mb.getUrl());
+        CauseAction causeAction = run.getAction(CauseAction.class);
+        if (causeAction != null) {
+            for (Cause cause : causeAction.getCauses()) {
+                if (cause instanceof Cause.UpstreamCause) {
+                    Cause.UpstreamCause upstreamCause = (Cause.UpstreamCause)cause;
+                    causes.add(upstreamCause.getShortDescription());
+                    TopLevelItem item = Jenkins.getInstance().getItem(upstreamCause.getUpstreamProject());
+                    if (item != null && item instanceof MatrixProject) {
+                        //Find the build
+                        MatrixBuild mb = ((MatrixProject)item).getBuildByNumber(upstreamCause.getUpstreamBuild());
+                        causes.add(mb.getUrl());
+                    }
                 }
             }
         }
