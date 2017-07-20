@@ -76,6 +76,7 @@ public class RunListenerImpl extends RunListener<Run> {
         json.put(Util.KEY_URL, Util.getJobUrl(r));
         json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
         json.put(Util.KEY_BUILD_NR, r.getNumber());
+        json.put(Util.KEY_BUILD_DURATION, r.getDuration());
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
         String status = "";
         Result res = r.getResult();
