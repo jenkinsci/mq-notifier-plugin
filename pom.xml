@@ -34,6 +34,15 @@
        <role>developer</role>
       </roles>
     </developer>
+    <developer>
+      <id>gustafl</id>
+      <name>Gustaf Lundh</name>
+      <email>gustaf.lundh@gmail.com</email>
+      <roles>
+       <role>developer</role>
+       <role>maintainer</role>
+      </roles>
+    </developer>
     <developer><id>t_westling</id>
      <name>Tomas Westling</name>
      <email>tomas.westling@sonymobile.com</email>
