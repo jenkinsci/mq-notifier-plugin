@@ -28,6 +28,9 @@ def l = "/plugin/mq-notifier/"
 
 f.section(title: "MQ Notifier") {
 
+    f.entry(title: "Enable Notifier", help: l+"help-enable-notifier.html") {
+        f.checkbox(field: "enableNotifier", checked: my.enableNotifier)
+    }
     f.entry(title: "MQ URI", field: "serverUri", help: l+"help-amqp-uri.html") {
         f.textbox("value":my.serverUri)
     }

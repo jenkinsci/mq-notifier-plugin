@@ -79,7 +79,30 @@ public class PluginTest {
     }
 
     /**
-     * Test connection by sending a message.
+     * Test invalid connection by sending a message.
+     */
+    @Test
+    public void testInvalidConnection() {
+        MQConnection conn = MQConnection.getInstance();
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
+        assertNotNull("No config available: MQNotifierConfig", config);
+        config.setExchangeName(EXCHANGE);
+        config.setServerUri(URI);
+        config.setRoutingKey(ROUTING);
+        config.setVirtualHost(null);
+        config.setEnableNotifier(false);
+
+        if (config != null && config.isNotifierEnabled()) {
+            conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
+            String message = new String(MESSAGE);
+
+            conn.addMessageToQueue(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());
+        }
+        assertEquals("Unmatched number of messages", 0, Mocks.MESSAGES.size());
+    }
+
+    /**
+     * Test valid connection by sending a message.
      */
     @Test
     public void testConnection() {
@@ -90,11 +113,14 @@ public class PluginTest {
         config.setServerUri(URI);
         config.setRoutingKey(ROUTING);
         config.setVirtualHost(null);
+        config.setEnableNotifier(true);
 
-        conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
-        String message = new String(MESSAGE);
+        if (config != null && config.isNotifierEnabled()) {
+            conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
+            String message = new String(MESSAGE);
 
-        conn.addMessageToQueue(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());
+            conn.addMessageToQueue(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());
+        }
         assertEquals("Unmatched number of messages", 1, Mocks.MESSAGES.size());
         assertThat("Unmatched message contents", Mocks.MESSAGES.get(0), is(MESSAGE));
     }

@@ -97,7 +97,7 @@ public class QueueListenerImpl extends QueueListener {
         if (config == null) {
             config = MQNotifierConfig.getInstance();
         }
-        if (config != null) {
+        if (config != null && config.isNotifierEnabled()) {
             AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
             int dm = 1;
             if (config.getPersistentDelivery()) {
