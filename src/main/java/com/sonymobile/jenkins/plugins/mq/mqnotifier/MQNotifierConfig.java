@@ -58,6 +58,9 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
     private static final String USERNAME = "userName";
     private static final String PASSWORD = "userPassword";
 
+    /* The status whether the plugin is enabled */
+    private boolean enableNotifier;
+
     /* The MQ server URI */
     private String serverUri;
     private String userName;
@@ -81,6 +84,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
     /**
      * Creates an instance with specified parameters.
      *
+     * @param enableNotifier     if this plugin is enabled
      * @param serverUri          the server uri
      * @param userName           the user name
      * @param userPassword       the user password
@@ -91,8 +95,10 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
      * @param appId              the application id
      */
     @DataBoundConstructor
-    public MQNotifierConfig(String serverUri, String userName, Secret userPassword, String exchangeName,
-                            String virtualHost, String routingKey, boolean persistentDelivery, String appId) {
+    public MQNotifierConfig(boolean enableNotifier, String serverUri, String userName, Secret userPassword,
+                            String exchangeName, String virtualHost, String routingKey, boolean persistentDelivery,
+                            String appId) {
+        this.enableNotifier = enableNotifier;
         this.serverUri = serverUri;
         this.userName = userName;
         this.userPassword = userPassword;
@@ -115,6 +121,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
      * Load configuration on invoke.
      */
     public MQNotifierConfig() {
+        this.enableNotifier = false;    // default value
         this.persistentDelivery = true; // default value
     }
 
@@ -124,6 +131,24 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
         req.bindJSON(this, formData);
         save();
         MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
+    }
+
+    /**
+     * Gets whether this plugin is enabled or not.
+     *
+     * @return true if this plugin is enabled.
+     */
+    public boolean isNotifierEnabled() {
+        return this.enableNotifier;
+    }
+
+    /**
+     * Sets flag whether this plugin is enabled or not.
+     *
+     * @param enableNotifier true if this plugin is enabled.
+     */
+    public void setEnableNotifier(boolean enableNotifier) {
+        this.enableNotifier = enableNotifier;
     }
 
     /**
