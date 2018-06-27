@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -7,7 +9,7 @@
     <artifactId>plugin</artifactId>
     <!-- Baseline Jenkins version you use to build and test the plugin. Users must have this version or newer to run. -->
     <version>1.580.1</version>
-    <relativePath />
+    <relativePath/>
   </parent>
   <groupId>com.sonymobile.jenkins.plugins.mq</groupId>
   <artifactId>mq-notifier</artifactId>
@@ -30,8 +32,8 @@
       <name>Örjan Percy</name>
       <email>orjan.percy@sonymobile.com</email>
       <roles>
-       <role>architect</role>
-       <role>developer</role>
+        <role>architect</role>
+        <role>developer</role>
       </roles>
     </developer>
     <developer>
@@ -39,25 +41,27 @@
       <name>Gustaf Lundh</name>
       <email>gustaf.lundh@gmail.com</email>
       <roles>
-       <role>developer</role>
-       <role>maintainer</role>
+        <role>developer</role>
+        <role>maintainer</role>
       </roles>
     </developer>
-    <developer><id>t_westling</id>
-     <name>Tomas Westling</name>
-     <email>tomas.westling@sonymobile.com</email>
-     <roles>
-      <role>architect</role>
-      <role>developer</role>
-      <role>maintainer</role>
-     </roles>
-    <timezone>+1</timezone>
+    <developer>
+      <id>t_westling</id>
+      <name>Tomas Westling</name>
+      <email>tomas.westling@sonymobile.com</email>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+        <role>maintainer</role>
+      </roles>
+      <timezone>+1</timezone>
     </developer>
   </developers>
 
   <scm>
     <connection>scm:git:ssh://github.com/jenkinsci/mq-notifier-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/mq-notifier-plugin.git</developerConnection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/mq-notifier-plugin.git
+    </developerConnection>
     <url>https://github.com/jenkinsci/mq-notifier-plugin</url>
     <tag>HEAD</tag>
   </scm>
@@ -75,158 +79,158 @@
     </pluginRepository>
   </pluginRepositories>
 
-<properties>
+  <properties>
     <jmockit.version>1.5</jmockit.version>
     <junit.version>4.11</junit.version>
     <amqp.client.version>3.4.1</amqp.client.version>
     <commons.validator.version>1.4.0</commons.validator.version>
     <commons.lang3.version>3.1</commons.lang3.version>
-</properties>
-<dependencies>
+  </properties>
+  <dependencies>
     <dependency>
-        <groupId>com.googlecode.jmockit</groupId>
-        <artifactId>jmockit</artifactId>
-        <version>${jmockit.version}</version>
-        <scope>test</scope>
+      <groupId>com.googlecode.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
+      <version>${jmockit.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
-        <scope>test</scope>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>com.rabbitmq</groupId>
-        <artifactId>amqp-client</artifactId>
-        <version>${amqp.client.version}</version>
+      <groupId>com.rabbitmq</groupId>
+      <artifactId>amqp-client</artifactId>
+      <version>${amqp.client.version}</version>
     </dependency>
     <dependency>
-        <groupId>commons-validator</groupId>
-        <artifactId>commons-validator</artifactId>
-        <version>${commons.validator.version}</version>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>${commons.validator.version}</version>
     </dependency>
     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>${commons.lang3.version}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons.lang3.version}</version>
     </dependency>
     <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>1.7.7</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.7</version>
     </dependency>
     <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>matrix-project</artifactId>
-        <version>1.4</version>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-project</artifactId>
+      <version>1.4</version>
     </dependency>
-</dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.11</version>
-                <configuration>
-                    <configLocation>swe_checkstyle.xml</configLocation>
-                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>checkstyle</id>
-                        <goals>
-                            <goal>checkstyle</goal>
-                        </goals>
-                        <phase>compile</phase>
-                    </execution>
-                    <execution>
-                        <id>test-check</id>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <phase>test</phase>
-                        <configuration>
-                            <violationSeverity>warning</violationSeverity>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.1</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                    <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
-                    <!-- Optional directory to put findbugs xdoc xml report -->
-                    <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>findbugs</id>
-                        <goals>
-                            <goal>findbugs</goal>
-                        </goals>
-                        <phase>test</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.6</version>
-                <dependencies>
-                    <dependency>
-                    <groupId>org.apache.maven.wagon</groupId>
-                        <artifactId>wagon-http</artifactId>
-                        <version>2.10</version>
-                        <type>jar</type>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <distributionManagement>
-        <repository>
-            <id>maven.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/releases</url>
-        </repository>
-    </distributionManagement>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.11</version>
-                <configuration>
-                    <configLocation>swe_checkstyle.xml</configLocation>
-                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <failsOnError>true</failsOnError>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.1</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                    <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
-                    <!-- Optional directory to put findbugs xdoc xml report -->
-                    <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.11</version>
+        <configuration>
+          <configLocation>swe_checkstyle.xml</configLocation>
+          <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <goals>
+              <goal>checkstyle</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+          <execution>
+            <id>test-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <violationSeverity>warning</violationSeverity>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+          <!-- Optional directory to put findbugs xdoc xml report -->
+          <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
+        </configuration>
+        <executions>
+          <execution>
+            <id>findbugs</id>
+            <goals>
+              <goal>findbugs</goal>
+            </goals>
+            <phase>test</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.6</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-http</artifactId>
+            <version>2.10</version>
+            <type>jar</type>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <distributionManagement>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/releases</url>
+    </repository>
+  </distributionManagement>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.11</version>
+        <configuration>
+          <configLocation>swe_checkstyle.xml</configLocation>
+          <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <failsOnError>true</failsOnError>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+          <!-- Optional directory to put findbugs xdoc xml report -->
+          <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>
