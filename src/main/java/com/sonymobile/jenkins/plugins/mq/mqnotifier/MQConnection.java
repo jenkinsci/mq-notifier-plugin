@@ -31,14 +31,17 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 import hudson.util.Secret;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -174,6 +177,28 @@ public final class MQConnection implements ShutdownListener {
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
         if (!messageQueue.offer(messageData)) {
             LOGGER.error("addMessageToQueue() failed, RabbitMQ queue is full!");
+        }
+    }
+
+    /**
+     * Publish json message on configured MQ server.
+     *
+     * @param json the message in json format
+     */
+    public void publish(JSONObject json) {
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
+        if (config != null && config.isNotifierEnabled()) {
+            AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
+            int dm = 1;
+            if (config.getPersistentDelivery()) {
+                dm = 2;
+            }
+            bob.appId(config.getAppId());
+            bob.deliveryMode(dm);
+            bob.contentType(Util.CONTENT_TYPE);
+            bob.timestamp(Calendar.getInstance().getTime());
+            addMessageToQueue(config.getExchangeName(), config.getRoutingKey(),
+                    bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }
     }
 

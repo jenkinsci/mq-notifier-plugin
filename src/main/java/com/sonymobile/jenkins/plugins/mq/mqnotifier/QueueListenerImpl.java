@@ -23,16 +23,12 @@
  */
 package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
-import com.rabbitmq.client.AMQP;
 import com.sonymobile.jenkins.plugins.mq.mqnotifier.providers.MQDataProvider;
 import hudson.Extension;
 import hudson.model.Label;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 import net.sf.json.JSONObject;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
 
 /**
  * Receives notifications about when tasks are submitted to the queue and publishes
@@ -67,7 +63,7 @@ public class QueueListenerImpl extends QueueListener {
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideEnterWaitingQueueData(wi, json);
         }
-        publish(json);
+        MQConnection.getInstance().publish(json);
     }
 
     @Override
@@ -85,30 +81,6 @@ public class QueueListenerImpl extends QueueListener {
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideLeftQueueData(li, json);
         }
-        publish(json);
-    }
-
-    /**
-     * Publish json message on configured MQ server.
-     *
-     * @param json the message in json format
-     */
-    private void publish(JSONObject json) {
-        if (config == null) {
-            config = MQNotifierConfig.getInstance();
-        }
-        if (config != null && config.isNotifierEnabled()) {
-            AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
-            int dm = 1;
-            if (config.getPersistentDelivery()) {
-                dm = 2;
-            }
-            bob.appId(config.getAppId());
-            bob.deliveryMode(dm);
-            bob.contentType(Util.CONTENT_TYPE);
-            bob.timestamp(Calendar.getInstance().getTime());
-            MQConnection.getInstance().addMessageToQueue(config.getExchangeName(), config.getRoutingKey(),
-                    bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
-        }
+        MQConnection.getInstance().publish(json);
     }
 }
