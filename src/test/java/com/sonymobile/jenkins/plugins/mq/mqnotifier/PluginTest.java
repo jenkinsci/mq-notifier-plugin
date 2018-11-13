@@ -175,7 +175,7 @@ public class PluginTest {
         String label = "label";
         String axis1 = "one";
         String axis2 = "two";
-        MatrixProject project = j.createMatrixProject();
+        MatrixProject project = j.createProject(MatrixProject.class);
         Axis axis = new Axis(label, axis1, axis2);
         project.setAxes(new AxisList(axis));
 

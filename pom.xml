@@ -1,18 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <!-- Baseline Jenkins version you use to build and test the plugin. Users must have this version or newer to run. -->
-    <version>1.580.1</version>
-    <relativePath />
+    <version>2.37</version>
+    <relativePath/>
   </parent>
+
   <groupId>com.sonymobile.jenkins.plugins.mq</groupId>
   <artifactId>mq-notifier</artifactId>
   <version>1.2.8-SNAPSHOT</version>
   <packaging>hpi</packaging>
+
+  <properties>
+    <jenkins.version>2.73.3</jenkins.version>
+    <java.level>8</java.level>
+    <jenkins-test-harness.version>2.38</jenkins-test-harness.version>
+  </properties>
 
   <name>MQ Notifier</name>
   <description>Publishes messages on an MQ server</description>
@@ -77,50 +85,42 @@
     </pluginRepository>
   </pluginRepositories>
 
-  <properties>
-    <jmockit.version>1.5</jmockit.version>
-    <junit.version>4.11</junit.version>
-    <amqp.client.version>3.4.1</amqp.client.version>
-    <commons.validator.version>1.4.0</commons.validator.version>
-    <commons.lang3.version>3.1</commons.lang3.version>
-  </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+      <version>2.16</version>
+    </dependency>
     <dependency>
       <groupId>com.googlecode.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <version>${jmockit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
+      <version>1.5</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
-      <version>${amqp.client.version}</version>
+      <version>3.4.1</version>
     </dependency>
     <dependency>
       <groupId>commons-validator</groupId>
       <artifactId>commons-validator</artifactId>
-      <version>${commons.validator.version}</version>
+      <version>1.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>${commons.lang3.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.7</version>
+      <version>3.4</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>matrix-project</artifactId>
-      <version>1.4</version>
+      <version>1.11</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>2.1</version>
     </dependency>
   </dependencies>
   <build>
@@ -194,6 +194,13 @@
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>
       </plugin>
     </plugins>
