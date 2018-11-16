@@ -28,6 +28,9 @@ import hudson.matrix.AxisList;
 import hudson.matrix.MatrixProject;
 import hudson.model.FreeStyleProject;
 import hudson.slaves.DumbSlave;
+import org.hamcrest.Matchers;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -59,6 +62,7 @@ public class PluginTest {
 
     /**
      * Called before class is setup.
+     *
      * @throws Exception thrown
      */
     @BeforeClass
@@ -69,6 +73,7 @@ public class PluginTest {
 
     /**
      * Called before test is run.
+     *
      * @throws Exception thrown
      */
     @Before
@@ -127,10 +132,11 @@ public class PluginTest {
 
     /**
      * Test that building a project generates the intended build messages.
+     *
      * @throws Exception thrown
      */
     @Test
-    public void testBuildProject()  throws Exception {
+    public void testBuildProject() throws Exception {
         String name = "qpwoeiruty";
         DumbSlave slave = j.createOnlineSlave();
         FreeStyleProject project = j.createFreeStyleProject(name);
@@ -145,10 +151,11 @@ public class PluginTest {
 
     /**
      * Test that building two projects generates the intended build messages.
+     *
      * @throws Exception thrown
      */
     @Test
-    public void testBuildProject2()  throws Exception {
+    public void testBuildProject2() throws Exception {
         String name1 = "adsddlfkjgh";
         String name2 = "zmnxbcv";
         DumbSlave slave = j.createOnlineSlave();
@@ -168,6 +175,7 @@ public class PluginTest {
 
     /**
      * Test that building a matrix project generates the intended build messages.
+     *
      * @throws Exception thrown
      */
     @Test
@@ -175,7 +183,7 @@ public class PluginTest {
         String label = "label";
         String axis1 = "one";
         String axis2 = "two";
-        MatrixProject project = j.createMatrixProject();
+        MatrixProject project = j.createProject(MatrixProject.class);
         Axis axis = new Axis(label, axis1, axis2);
         project.setAxes(new AxisList(axis));
 
@@ -188,5 +196,22 @@ public class PluginTest {
         assertThat(Mocks.COMPLETED.toString(), containsString(axis2));
     }
 
-}
+    /**
+     * Tests that the publishMQMessage is registered and puts messages in the queue.
+     *
+     * @throws Exception thrown
+     */
+    @Test
+    public void testPipelineStep() throws Exception {
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
+        config.setEnableNotifier(true);
 
+        String message = "{\"key\":\"value\"}";
+
+        WorkflowJob job = j.createProject(WorkflowJob.class);
+        job.setDefinition(new CpsFlowDefinition("publishMQMessage '" + message + "'", true));
+
+        j.buildAndAssertSuccess(job);
+        assertThat(Mocks.MESSAGES, Matchers.hasItem(message));
+    }
+}
