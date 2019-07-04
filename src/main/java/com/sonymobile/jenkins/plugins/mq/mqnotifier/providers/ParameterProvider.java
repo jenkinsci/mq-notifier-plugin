@@ -24,6 +24,7 @@
 package com.sonymobile.jenkins.plugins.mq.mqnotifier.providers;
 
 import hudson.Extension;
+import hudson.model.Actionable;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Queue;
@@ -44,17 +45,17 @@ public class ParameterProvider extends MQDataProvider {
 
     @Override
     public void provideStartRunData(Run run, JSONObject json) {
-        addRunParametersToJSON(run, json);
+        addParametersToJSON(run, json);
     }
 
     @Override
     public void provideCompletedRunData(Run run, JSONObject json) {
-        addRunParametersToJSON(run, json);
+        addParametersToJSON(run, json);
     }
 
     @Override
     public void provideEnterWaitingQueueData(Queue.WaitingItem wi, JSONObject json) {
-        addQueueParametersToJson(wi, json);
+        addParametersToJSON(wi, json);
     }
 
     @Override
@@ -63,15 +64,16 @@ public class ParameterProvider extends MQDataProvider {
     }
 
     /**
-     * Adds parameters for a Run.
-     * @param run the Run we are getting parameters from.
+     * Adds parameters for a {@link Actionable}, e.g. {@link Run} or
+     * {@link Queue.Item}.
+     *
+     * @param actionable the Item we are getting parameters from.
      * @param json the JSON object to add data to.
      */
-    private void addRunParametersToJSON(Run run, JSONObject json) {
+    private void addParametersToJSON(Actionable actionable, JSONObject json) {
         List<String> parameters = new LinkedList<String>();
-        ParametersAction parametersAction = run.getAction(ParametersAction.class);
-        if (parametersAction != null) {
-            List<ParameterValue> parameterValues = parametersAction.getParameters();
+        for (ParametersAction action : actionable.getActions(ParametersAction.class)) {
+            List<ParameterValue> parameterValues = action.getParameters();
             if (parameterValues != null) {
                 for (ParameterValue parameterValue : parameterValues) {
                     parameters.add(parameterValue.getName() + "=" + parameterValue.getValue());
@@ -79,19 +81,5 @@ public class ParameterProvider extends MQDataProvider {
             }
         }
         json.put(KEY_PARAMETERS, parameters);
-    }
-
-    /**
-     * Adds parameters for a {@link Queue.Item}s
-     * @param item the Item we are getting parameters from.
-     * @param json the JSON object to add data to.
-     */
-    private void addQueueParametersToJson(Queue.Item item, JSONObject json) {
-        String[] parametersArray = new String[0];
-        String parameters = item.getParams();
-        if (parameters.length() > 0) {
-            parametersArray = parameters.substring(1).split("\n");   // Remove leading '\n'.
-        }
-        json.put(KEY_PARAMETERS, parametersArray);
     }
 }

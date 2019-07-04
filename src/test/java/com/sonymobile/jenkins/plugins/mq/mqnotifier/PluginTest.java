@@ -27,6 +27,8 @@ import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixProject;
 import hudson.model.FreeStyleProject;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.TextParameterDefinition;
 import hudson.slaves.DumbSlave;
 import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -214,4 +216,26 @@ public class PluginTest {
         j.buildAndAssertSuccess(job);
         assertThat(Mocks.MESSAGES, Matchers.hasItem(message));
     }
+
+    /**
+     * Ensures that multi-line parameters are represented as a single parameter
+     * in the MQ message.
+     *
+     * @throws Exception thrown
+     */
+    @Test
+    public void testMultilineParameterInMessage() throws Exception {
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
+        config.setEnableNotifier(true);
+
+        FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new ParametersDefinitionProperty(
+                new TextParameterDefinition("FOO", "BAR\nBAZ", "Multiline parameter")));
+
+        j.buildAndAssertSuccess(p);
+
+        // Ensure that the parameter is a single entry:
+        assertThat(Mocks.MESSAGES.get(0), containsString("\"FOO=BAR\\nBAZ\""));
+    }
+
 }
