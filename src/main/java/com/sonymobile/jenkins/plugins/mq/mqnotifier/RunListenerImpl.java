@@ -67,6 +67,40 @@ public class RunListenerImpl extends RunListener<Run> {
 
     @Override
     public void onCompleted(Run r, TaskListener listener) {
+        if (r instanceof AbstractBuild) {
+            onDone(r);
+        }
+    }
+
+    @Override
+    public void onFinalized(Run r) {
+        if (!(r instanceof AbstractBuild)) {
+            onDone(r);
+        }
+    }
+
+    @Override
+    public void onDeleted(Run r) {
+        if (r instanceof AbstractBuild) {
+            // Deleting a Job does not fire the RunListener.onDeleted event for its Runs
+            // https://issues.jenkins-ci.org/browse/JENKINS-26708
+            JSONObject json = new JSONObject();
+            json.put(Util.KEY_STATE, Util.VALUE_DELETED);
+            json.put(Util.KEY_URL, Util.getJobUrl(r));
+            json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
+            json.put(Util.KEY_BUILD_NR, r.getNumber());
+            json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+            json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
+            MQConnection.getInstance().publish(json);
+        }
+    }
+
+    /**
+     * Collect the relevant information from the Run and publish it.
+     *
+     * @param r The run
+     */
+    private void onDone(Run r) {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
         json.put(Util.KEY_URL, Util.getJobUrl(r));
@@ -84,21 +118,5 @@ public class RunListenerImpl extends RunListener<Run> {
             mqDataProvider.provideCompletedRunData(r, json);
         }
         MQConnection.getInstance().publish(json);
-    }
-
-    @Override
-    public void onDeleted(Run r) {
-        if (r instanceof AbstractBuild) {
-            // Deleting a Job does not fire the RunListener.onDeleted event for its Runs
-            // https://issues.jenkins-ci.org/browse/JENKINS-26708
-            JSONObject json = new JSONObject();
-            json.put(Util.KEY_STATE, Util.VALUE_DELETED);
-            json.put(Util.KEY_URL, Util.getJobUrl(r));
-            json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
-            json.put(Util.KEY_BUILD_NR, r.getNumber());
-            json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
-            json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
-            MQConnection.getInstance().publish(json);
-        }
     }
 }
