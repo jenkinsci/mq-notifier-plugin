@@ -40,9 +40,6 @@ import net.sf.json.JSONObject;
  */
 @Extension
 public class RunListenerImpl extends RunListener<Run> {
-
-    private static MQNotifierConfig config;
-
     /**
      * Constructor for RunListenerImpl.
      */

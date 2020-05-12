@@ -37,8 +37,6 @@ import net.sf.json.JSONObject;
  */
 @Extension
 public class QueueListenerImpl extends QueueListener {
-    private static MQNotifierConfig config;
-
     /**
      * Populates the json with common data for Queue items.
      *

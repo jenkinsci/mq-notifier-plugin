@@ -2,4 +2,9 @@
      <Match>
        <Class name="~.+\.Messages" />
      </Match>
+     <Match>
+         <Class name="com.sonymobile.jenkins.plugins.mq.mqnotifier.MQNotifierConfig" />
+         <Method name="getInstance" />
+         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
+     </Match>
 </FindBugsFilter>
