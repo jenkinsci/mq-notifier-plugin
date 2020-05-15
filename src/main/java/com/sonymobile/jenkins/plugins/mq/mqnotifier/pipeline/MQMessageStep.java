@@ -73,6 +73,7 @@ public class MQMessageStep extends Step {
     private static class Execution extends SynchronousStepExecution<Void> {
 
         private transient MQMessageStep step;
+        private static final long serialVersionUID = 1L;
 
         /**
          * Execution Constructor
