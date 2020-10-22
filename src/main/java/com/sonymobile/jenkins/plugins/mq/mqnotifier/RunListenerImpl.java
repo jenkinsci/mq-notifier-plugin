@@ -47,6 +47,13 @@ public class RunListenerImpl extends RunListener<Run> {
         super(Run.class);
     }
 
+    /**
+     * Create a base run message
+     *
+     * @param r the current Jenkins run.
+     * @param state the current state of the Job.
+     * @return JSONObject with base run properties set.
+     */
     private JSONObject createBaseMessage(Run r, String state){
         JSONObject json = new JSONObject();
         json.put(Util.KEY_URL, Util.getJobUrl(r));
