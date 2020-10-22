@@ -47,15 +47,19 @@ public class RunListenerImpl extends RunListener<Run> {
         super(Run.class);
     }
 
-    @Override
-    public void onStarted(Run r, TaskListener listener) {
+    private JSONObject createBaseMessage(Run r, String state){
         JSONObject json = new JSONObject();
-        json.put(Util.KEY_STATE, Util.VALUE_STARTED);
         json.put(Util.KEY_URL, Util.getJobUrl(r));
         json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
         json.put(Util.KEY_BUILD_NR, r.getNumber());
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+        json.put(Util.KEY_STATE, state);
+        return json;
+    }
 
+    @Override
+    public void onStarted(Run r, TaskListener listener) {
+        JSONObject json = createBaseMessage(r, Util.VALUE_STARTED);
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideStartRunData(r, json);
         }
@@ -81,12 +85,7 @@ public class RunListenerImpl extends RunListener<Run> {
         if (r instanceof AbstractBuild) {
             // Deleting a Job does not fire the RunListener.onDeleted event for its Runs
             // https://issues.jenkins-ci.org/browse/JENKINS-26708
-            JSONObject json = new JSONObject();
-            json.put(Util.KEY_STATE, Util.VALUE_DELETED);
-            json.put(Util.KEY_URL, Util.getJobUrl(r));
-            json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
-            json.put(Util.KEY_BUILD_NR, r.getNumber());
-            json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+            JSONObject json = createBaseMessage(r, Util.VALUE_DELETED);
             json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
             MQConnection.getInstance().publish(json);
         }
@@ -98,13 +97,8 @@ public class RunListenerImpl extends RunListener<Run> {
      * @param r The run
      */
     private void onDone(Run r) {
-        JSONObject json = new JSONObject();
-        json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
-        json.put(Util.KEY_URL, Util.getJobUrl(r));
-        json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
-        json.put(Util.KEY_BUILD_NR, r.getNumber());
+        JSONObject json = createBaseMessage(r, Util.VALUE_COMPLETED);
         json.put(Util.KEY_BUILD_DURATION, r.getDuration());
-        json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
         String status = "";
         Result res = r.getResult();
         if (res != null) {
