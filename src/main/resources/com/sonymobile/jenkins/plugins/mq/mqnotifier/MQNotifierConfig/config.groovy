@@ -59,4 +59,7 @@ f.section(title: "MQ Notifier") {
     f.entry(title: "Persistent Delivery mode", help: l+"help-persistent-delivery.html") {
         f.checkbox(field: "persistentDelivery", checked: my.persistentDelivery)
     }
+    f.entry(title: "Enable verbose logging", help: l+"help-enable-verbose-logging.html") {
+        f.checkbox(field: "enableVerboseLogging", checked: my.enableVerboseLogging)
+    }
 }
