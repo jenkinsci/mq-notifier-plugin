@@ -199,10 +199,6 @@ public final class MQConnection implements ShutdownListener {
             bob.contentType(Util.CONTENT_TYPE);
             bob.timestamp(Calendar.getInstance().getTime());
 
-            if(config.isVerboseLoggingEnabled()){
-                LOGGER.debug("Posting JSON message to RabbitMQ:\n" + json.toString(2));
-            }
-
             addMessageToQueue(config.getExchangeName(), config.getRoutingKey(),
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }

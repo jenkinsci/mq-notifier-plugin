@@ -47,6 +47,14 @@ public class RunListenerImpl extends RunListener<Run> {
         super(Run.class);
     }
 
+    private  MQNotifierConfig config = MQNotifierConfig.getInstance();
+
+    private void logMessage(JSONObject message, TaskListener listener) {
+        if(this.config.isVerboseLoggingEnabled()){
+            listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + message.toString(2));
+        }
+    }
+
     /**
      * Create a base run message
      *
@@ -64,26 +72,52 @@ public class RunListenerImpl extends RunListener<Run> {
         return json;
     }
 
+    /**
+     * Creates a message indicating a job is finished
+     *
+     * @param r the current Jenkins run.
+     * @return JSONObject with base run properties set.
+     */
+    private JSONObject createDoneMessage(Run r){
+        JSONObject json = createBaseMessage(r, Util.VALUE_COMPLETED);
+        json.put(Util.KEY_BUILD_DURATION, r.getDuration());
+        String status = "";
+        Result res = r.getResult();
+        if (res != null) {
+            status = res.toString();
+        }
+        json.put(Util.KEY_STATUS, status);
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideCompletedRunData(r, json);
+        }
+        return json;
+    }
+
+
     @Override
     public void onStarted(Run r, TaskListener listener) {
         JSONObject json = createBaseMessage(r, Util.VALUE_STARTED);
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideStartRunData(r, json);
         }
+        logMessage(json, listener);
         MQConnection.getInstance().publish(json);
     }
 
     @Override
     public void onCompleted(Run r, TaskListener listener) {
         if (r instanceof AbstractBuild) {
-            onDone(r);
+            JSONObject json = createDoneMessage(r);
+            logMessage(json, listener);
+            MQConnection.getInstance().publish(json);
         }
     }
 
     @Override
     public void onFinalized(Run r) {
         if (!(r instanceof AbstractBuild)) {
-            onDone(r);
+            JSONObject json = createDoneMessage(r);
+            MQConnection.getInstance().publish(json);
         }
     }
 
@@ -96,25 +130,5 @@ public class RunListenerImpl extends RunListener<Run> {
             json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
             MQConnection.getInstance().publish(json);
         }
-    }
-
-    /**
-     * Collect the relevant information from the Run and publish it.
-     *
-     * @param r The run
-     */
-    private void onDone(Run r) {
-        JSONObject json = createBaseMessage(r, Util.VALUE_COMPLETED);
-        json.put(Util.KEY_BUILD_DURATION, r.getDuration());
-        String status = "";
-        Result res = r.getResult();
-        if (res != null) {
-            status = res.toString();
-        }
-        json.put(Util.KEY_STATUS, status);
-        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
-            mqDataProvider.provideCompletedRunData(r, json);
-        }
-        MQConnection.getInstance().publish(json);
     }
 }
