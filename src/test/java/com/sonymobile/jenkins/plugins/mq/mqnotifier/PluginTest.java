@@ -98,6 +98,7 @@ public class PluginTest {
         config.setRoutingKey(ROUTING);
         config.setVirtualHost(null);
         config.setEnableNotifier(false);
+        config.setEnableVerboseLogging(false);
 
         if (config != null && config.isNotifierEnabled()) {
             conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
