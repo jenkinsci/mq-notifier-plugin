@@ -24,6 +24,7 @@
 package com.sonymobile.jenkins.plugins.mq.mqnotifier.pipeline;
 
 import com.sonymobile.jenkins.plugins.mq.mqnotifier.MQConnection;
+import com.sonymobile.jenkins.plugins.mq.mqnotifier.MQNotifierConfig;
 import hudson.Extension;
 import hudson.model.TaskListener;
 import net.sf.json.JSONException;
@@ -89,6 +90,7 @@ public class MQMessageStep extends Step {
         @Override
         protected Void run() throws Exception {
             TaskListener listener = getContext().get(TaskListener.class);
+            MQNotifierConfig config = MQNotifierConfig.getInstance();
 
             JSONObject json;
             try {
@@ -102,7 +104,9 @@ public class MQMessageStep extends Step {
             // message is put on a queue to be sent at a later point in time. Preferably we would be able
             // to get a Future<> back so that we could wait if we wanted. But that's not how the MQ
             // Notifier is built.
-            listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + json.toString(2));
+            if(config.isVerboseLoggingEnabled()) {
+                listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + json.toString(2));
+            }
             MQConnection.getInstance().publish(json);
             return null;
         }
