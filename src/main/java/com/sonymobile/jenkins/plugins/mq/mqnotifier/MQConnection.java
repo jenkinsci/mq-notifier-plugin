@@ -65,7 +65,7 @@ public final class MQConnection implements ShutdownListener {
     private Connection connection = null;
     private Channel channel = null;
 
-    private volatile LinkedBlockingQueue messageQueue;
+    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
     private Thread messageQueueThread;
 
     /**
@@ -160,20 +160,15 @@ public final class MQConnection implements ShutdownListener {
      * @param body the message body
      */
     public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
-        synchronized (this) {
-            if (messageQueue == null) {
-                messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
-            }
-            if (messageQueueThread == null || !messageQueueThread.isAlive()) {
-                messageQueueThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendMessages();
-                    }
-                });
-                messageQueueThread.start();
-                LOGGER.info("messageQueueThread recreated since it was null or not alive.");
-            }
+        if (messageQueueThread == null || !messageQueueThread.isAlive()) {
+            messageQueueThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    sendMessages();
+                }
+            });
+            messageQueueThread.start();
+            LOGGER.info("messageQueueThread recreated since it was null or not alive.");
         }
 
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
