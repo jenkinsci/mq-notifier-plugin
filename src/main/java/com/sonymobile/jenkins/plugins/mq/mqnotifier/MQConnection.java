@@ -67,6 +67,10 @@ public final class MQConnection implements ShutdownListener {
     private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
     private Thread messageQueueThread;
 
+    /* False if messages should not be added to the queue */
+    private volatile boolean shouldAddToQueue = false;
+
+
     /**
      * Throw on exceptions when creating a channel
      */
@@ -185,6 +189,7 @@ public final class MQConnection implements ShutdownListener {
         }
 
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
+        waitForQueue(); // Block execution until queue is available
         if (!messageQueue.offer(messageData)) {
             LOGGER.error("addMessageToQueue() failed, RabbitMQ queue is full!");
         }
@@ -247,6 +252,27 @@ public final class MQConnection implements ShutdownListener {
 
 
     /**
+     * Enable or disable adding messages to the queue.
+     */
+    private synchronized void setShouldAddToQueue(boolean enabled) {
+        this.shouldAddToQueue = enabled;
+        notifyAll();
+    }
+
+    /**
+     * Wait until it's ok to add messages to the queue again
+     */
+    public synchronized void waitForQueue() {
+        while (!this.shouldAddToQueue) {
+            try {
+                wait();
+            } catch (InterruptedException e)  {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
      * Validate the exchange.
      *
      * @throws IOException if the channel is invalid for the exchange
@@ -267,6 +293,8 @@ public final class MQConnection implements ShutdownListener {
         try {
             connection = getConnection();
             if (connection != null) {
+                LOGGER.debug("Channel successfully created");
+                setShouldAddToQueue(true);
                 return connection.createChannel();
             }
             throw new ChannelCreationException("Cannot create channel, no connection found");
