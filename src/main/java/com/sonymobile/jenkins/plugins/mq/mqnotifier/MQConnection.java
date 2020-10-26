@@ -226,16 +226,14 @@ public final class MQConnection implements ShutdownListener {
                 MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
                                                                          TimeUnit.MILLISECONDS);
                 if (messageData != null) {
-                    if (!getConnection().getAddress().isLoopbackAddress()) {
-                        channel.exchangeDeclarePassive(messageData.getExchange());
-                    }
+                    validateExchange(channel, messageData.getExchange());
                     getInstance().sendOnChannel(messageData.getExchange(), messageData.getRoutingKey(),
                             messageData.getProps(), messageData.getBody(), channel);
                 }
             } catch (InterruptedException ie) {
                 LOGGER.info("sendMessages() poll() was interrupted: ", ie);
             } catch (IOException ioe) {
-                LOGGER.error("the exchange do probably not exists: ", ioe);
+                LOGGER.error("error validating channel: ", ioe);
             } catch (ChannelCreationException cce) {
                 LOGGER.error(cce.getMessage(), cce.getCause());
                 try {
@@ -245,6 +243,19 @@ public final class MQConnection implements ShutdownListener {
                 }
             }
         }
+    }
+
+
+    /**
+     * Validate the exchange.
+     *
+     * @throws IOException if the channel is invalid for the exchange
+     */
+    private void validateExchange(Channel channel, String exchange) throws IOException {
+        if (exchange == null) {
+            throw new IOException("Invalid configuration, exchange must not be null.");
+        }
+        channel.exchangeDeclarePassive(exchange);
     }
 
     /**
@@ -343,11 +354,6 @@ public final class MQConnection implements ShutdownListener {
      */
     private void sendOnChannel(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body,
                                Channel channel) {
-        if (exchange == null) {
-            LOGGER.error("Invalid configuration, exchange must not be null.");
-            return;
-        }
-
         try {
             channel.basicPublish(exchange, routingKey, props, body);
         } catch (IOException e) {
