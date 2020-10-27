@@ -44,6 +44,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Creates an MQ connection.
@@ -266,6 +267,8 @@ public final class MQConnection implements ShutdownListener {
                 connection.addShutdownListener(this);
             } catch (IOException e) {
                 LOGGER.warn("Connection refused", e);
+            } catch (TimeoutException te) {
+                LOGGER.warn("Attempt to connect timed out: ", te);
             }
         }
         return connection;
