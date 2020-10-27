@@ -26,6 +26,7 @@ package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmCallback;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ShutdownListener;
@@ -42,6 +43,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -64,6 +67,7 @@ public final class MQConnection implements ShutdownListener {
     private Connection connection = null;
 
     private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue();
+    private volatile ConcurrentNavigableMap<Long, MessageData> outstandingConfirms = new ConcurrentSkipListMap<>();
     private Thread messageQueueThread;
 
     /* False if messages should not be added to the queue */
@@ -233,6 +237,8 @@ public final class MQConnection implements ShutdownListener {
             try {
                 if (channel == null || !channel.isOpen()) {
                     channel = createChannel();
+                    channel.confirmSelect();
+                    addMessageConfirmListener(channel);
                     setShouldAddToQueue(true);
                 }
                 MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
@@ -307,6 +313,31 @@ public final class MQConnection implements ShutdownListener {
         } catch (IOException | ShutdownSignalException e) {
             throw new ChannelCreationException("Cannot create channel", e);
         }
+    }
+
+    /**
+     * Add an async listener for ack/nack events and remove accordingly.
+     *
+     * @param channel the channel to configure a confirm listener for
+     */
+    private void addMessageConfirmListener(Channel channel) {
+        ConfirmCallback cleanOutstandingConfirms = (sequenceNumber, multiple) -> {
+            if (multiple) {
+                ConcurrentNavigableMap<Long, MessageData> confirmed = this.outstandingConfirms.headMap(
+                        sequenceNumber, true
+                );
+                confirmed.clear();
+            } else {
+                this.outstandingConfirms.remove(sequenceNumber);
+            }
+        };
+
+        // Signature is addConfirmListener(successCallback, errorCallback)
+        channel.addConfirmListener(cleanOutstandingConfirms, (sequenceNumber, multiple) -> {
+            MessageData message = outstandingConfirms.get(sequenceNumber);
+            messageQueue.add(message);
+            cleanOutstandingConfirms.handle(sequenceNumber, multiple);
+        });
     }
 
     /**
@@ -386,6 +417,7 @@ public final class MQConnection implements ShutdownListener {
      */
     private void sendOnChannel(MessageData messageData, Channel channel) throws MessageDeliveryException {
         try {
+            outstandingConfirms.put(channel.getNextPublishSeqNo(), messageData);
             channel.basicPublish(
                     messageData.getExchange(),
                     messageData.getRoutingKey(),
