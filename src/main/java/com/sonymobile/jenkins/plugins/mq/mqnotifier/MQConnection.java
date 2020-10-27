@@ -86,6 +86,15 @@ public final class MQConnection implements ShutdownListener {
     }
 
     /**
+     * Exception indicating an error delivering a message to MQ
+     */
+    private class MessageDeliveryException extends Exception {
+        public MessageDeliveryException(String errorMessage, Throwable cause) {
+            super(errorMessage, cause);
+        }
+    }
+
+    /**
      * Lazy-loaded singleton using the initialization-on-demand holder pattern.
      */
     private MQConnection() { }
@@ -225,22 +234,23 @@ public final class MQConnection implements ShutdownListener {
 
         while (true) {
             try {
-                if(channel == null || !channel.isOpen()) {
+                if (channel == null || !channel.isOpen()) {
                     channel = createChannel();
+                    setShouldAddToQueue(true);
                 }
                 MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
                                                                          TimeUnit.MILLISECONDS);
                 if (messageData != null) {
                     validateExchange(channel, messageData.getExchange());
-                    getInstance().sendOnChannel(messageData.getExchange(), messageData.getRoutingKey(),
-                            messageData.getProps(), messageData.getBody(), channel);
+                    getInstance().sendOnChannel(messageData, channel);
                 }
             } catch (InterruptedException ie) {
                 LOGGER.info("sendMessages() poll() was interrupted: ", ie);
             } catch (IOException ioe) {
                 LOGGER.error("error validating channel: ", ioe);
-            } catch (ChannelCreationException cce) {
-                LOGGER.error(cce.getMessage(), cce.getCause());
+            } catch (ChannelCreationException | MessageDeliveryException transientException) {
+                LOGGER.error(transientException.getMessage(), transientException.getCause());
+                setShouldAddToQueue(false);
                 try {
                     Thread.sleep(CONNECTION_WAIT);
                 } catch (InterruptedException ie) {
@@ -294,7 +304,6 @@ public final class MQConnection implements ShutdownListener {
             connection = getConnection();
             if (connection != null) {
                 LOGGER.debug("Channel successfully created");
-                setShouldAddToQueue(true);
                 return connection.createChannel();
             }
             throw new ChannelCreationException("Cannot create channel, no connection found");
@@ -375,19 +384,23 @@ public final class MQConnection implements ShutdownListener {
      * Sends a message.
      * Keeps trying to get a connection indefinitely.
      *
-     * @param exchange the exchange to publish the message to
-     * @param routingKey the routing key
-     * @param props other properties for the message - routing headers etc
-     * @param body the message body
+     * @param messageData an object containing message data
+     * @param channel a channel to publish the message on
      */
-    private void sendOnChannel(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body,
-                               Channel channel) {
+    private void sendOnChannel(MessageData messageData, Channel channel) throws MessageDeliveryException {
         try {
-            channel.basicPublish(exchange, routingKey, props, body);
+            channel.basicPublish(
+                    messageData.getExchange(),
+                    messageData.getRoutingKey(),
+                    messageData.getProps(),
+                    messageData.getBody()
+            );
         } catch (IOException e) {
-            LOGGER.error("Cannot publish message", e);
+            messageQueue.add(messageData);
+            throw new MessageDeliveryException("Cannot publish message", e);
         } catch (AlreadyClosedException e) {
-            LOGGER.error("Connection is already closed", e);
+            messageQueue.add(messageData);
+            throw new MessageDeliveryException("Connection is already closed", e);
         }
     }
 
