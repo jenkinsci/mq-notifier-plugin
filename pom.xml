@@ -133,6 +133,12 @@
       <artifactId>commons-validator</artifactId>
       <version>1.7</version>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>rabbitmq</artifactId>
+      <version>1.12.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
