@@ -33,7 +33,7 @@ public final class TestUtil {
      * with a binding to a queue (QUEUE_NAME). No routing queue should be specified. The container may
      * be started by, for example, using a jUnit @Rule.
      *
-     * @return an RabbitMQ container singleton. The container is not started.
+     * @return an RabbitMQ container singleton. A container is not started.
      */
     public static RabbitMQContainer getDefaultMQContainer() {
         if (defaultMQContainer == null) {
@@ -65,16 +65,16 @@ public final class TestUtil {
      * Wait for x messages on the queue to be published.
      *
      * @param conn A connection to be used for connecting to RabbitMQ
-     * @param stopAtMessage stop after finding this many messages
-     * @param maxWaitTime the max time to wait for a message
+     * @param numberExpectedMessages stop after finding this many messages
+     * @param secondsWaitPerMessage the max time to wait for a message
      * @param queueName the queue to listen to messages on
      *
      * @return a list of the found messages as JSONObjects
      */
     public static ArrayList<JSONObject> waitForMessages(
             MQConnection conn,
-            int stopAtMessage,
-            int maxWaitTime,
+            int numberExpectedMessages,
+            int secondsWaitPerMessage,
             String queueName
     ) throws IOException, InterruptedException {
         Channel channel = null;
@@ -107,8 +107,8 @@ public final class TestUtil {
         channel.basicConsume(queueName, true, consumer);
 
         synchronized (foundMessages) {
-            while(foundMessages.size() != stopAtMessage) {
-                foundMessages.wait(Duration.ofSeconds(maxWaitTime).toMillis());
+            while(foundMessages.size() != numberExpectedMessages) {
+                foundMessages.wait(Duration.ofSeconds(secondsWaitPerMessage).toMillis());
             }
             foundMessages.drainTo(foundMessagesArray);
         }
@@ -118,12 +118,12 @@ public final class TestUtil {
     /**
      * Creates a list of x messages. Useful for generating messages during testing.
      *
-     * @param numberOfMessages the number of messages to create
+     * @param count the number of messages to create
      *
      * @return list of messages
      */
-    public static ArrayList<JSONObject> createMessages(int numberOfMessages) {
-        return IntStream.range(1, numberOfMessages+1).mapToObj(i -> {
+    public static ArrayList<JSONObject> createMessages(int count) {
+        return IntStream.range(1, count+1).mapToObj(i -> {
             JSONObject message = new JSONObject();
             message.put("test", "test" + i);
             return message;

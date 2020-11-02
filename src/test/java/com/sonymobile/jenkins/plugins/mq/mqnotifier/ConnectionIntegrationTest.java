@@ -55,7 +55,7 @@ public class ConnectionIntegrationTest {
     }
 
     /**
-     * Creates a connection to rabbitMQ (through toxiproxy) and configure exchanges, passwords etc.
+     * Creates a connection to RabbitMQ through toxiproxy and configures exchanges, passwords etc.
      */
     @Before
     public void createProxyConnection() {
@@ -69,7 +69,7 @@ public class ConnectionIntegrationTest {
     }
 
     /**
-     * Format an uri to the toxiproxy.
+     * Format an URI to toxiproxy, which will be forwarded to RabbitMQ.
      */
     private String formatProxyServerUri() {
         ToxiproxyContainer.ContainerProxy proxy = getProxy();
@@ -104,7 +104,7 @@ public class ConnectionIntegrationTest {
         });
         Thread.sleep(1000);
         getProxy().setConnectionCut(false);
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 20, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
         assertEquals(expectedMessages, actualMessages);
     }
 
@@ -112,7 +112,7 @@ public class ConnectionIntegrationTest {
      * Test that the MQNotifier won't lose messages when upstream is closed, i.e. no acks.
      */
     @Test
-    public void testSendMessagesHandlesUpstremTimeout() throws InterruptedException, IOException {
+    public void testSendMessagesHandlesUpstreamTimeout() throws InterruptedException, IOException {
         MQConnection conn = MQConnection.getInstance();
         ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(1000);
         getProxy().toxics().timeout("timeout", ToxicDirection.UPSTREAM, 8000);
@@ -121,7 +121,7 @@ public class ConnectionIntegrationTest {
         });
         Thread.sleep(8000);
         getProxy().toxics().get("timeout", Timeout.class).remove();
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 20, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
         assertEquals( 0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
@@ -146,8 +146,7 @@ public class ConnectionIntegrationTest {
         getProxy().setConnectionCut(true);
         Thread.sleep(5000);
         getProxy().setConnectionCut(false);
-        System.out.println("Start waiting");
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 30, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
         assertEquals( 0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
@@ -163,7 +162,7 @@ public class ConnectionIntegrationTest {
         executor.submit(() -> {
             expectedMessages.forEach(conn::publish);
         });
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 50, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 10, TestUtil.QUEUE_NAME);
         assertEquals( 0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
