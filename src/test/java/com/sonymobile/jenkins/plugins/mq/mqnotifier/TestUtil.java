@@ -8,6 +8,7 @@ import hudson.util.Secret;
 import net.sf.json.JSONObject;
 import org.junit.AssumptionViolatedException;
 import org.testcontainers.containers.RabbitMQContainer;
+import org.testcontainers.containers.ToxiproxyContainer;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -79,7 +80,14 @@ public final class TestUtil {
             int maxWaitTime,
             String queueName
     ) throws IOException, InterruptedException {
-        Channel channel = conn.getConnection().openChannel().get();
+        Channel channel = null;
+
+        while (channel == null) {
+            try {
+                channel = conn.getConnection().createChannel();
+                Thread.sleep(1000);
+            }catch (Exception ignored){}
+        }
         LinkedBlockingQueue<JSONObject> foundMessages = new LinkedBlockingQueue<>();
         ArrayList<JSONObject> foundMessagesArray = new ArrayList<>();
 
@@ -111,22 +119,6 @@ public final class TestUtil {
     }
 
     /**
-     * Publish a list of messages to RabbitMQ.
-     *
-     * @param messages the messages, as JSONObjects to be published to RabbitMQ
-     * @param conn A connection to be used for connecting to RabbitMQ and to publish messages on
-     * @param waitTime the max time to wait for all messages to be published
-     *
-     * @throws InterruptedException if all messages couldn't be publish within the wait time
-     */
-    public static void sendMessagesWithinTimeframe(ArrayList<JSONObject> messages, MQConnection conn, int waitTime) throws InterruptedException {
-        messages.forEach(conn::publish);
-        if (!waitUntil(Duration.ofSeconds(waitTime), () -> conn.getSizeOutstandingConfirms() == 0)) {
-            throw new AssumptionViolatedException("All messages could not be confirmed within the timeframe");
-        }
-    }
-
-    /**
      * Creates a list of x messages. Useful for generating messages during testing.
      *
      * @param numberOfMessages the number of messages to create
@@ -139,24 +131,6 @@ public final class TestUtil {
             message.put("test", "test" + i);
             return message;
         }).collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    /**
-     * Busy wait until a condition becomes true
-     *
-     * @param timeout a timeout not to wait longer than.
-     * @param condition a condition to evaluate. Proceed if condition is true
-     *
-     * @return the return value of the condition
-     * @throws InterruptedException if the sleep is interrupted
-     */
-    public static boolean waitUntil(Duration timeout, BooleanSupplier condition) throws InterruptedException {
-        int waited = 0;
-        while (!condition.getAsBoolean() && waited < timeout.toMillis()) {
-            Thread.sleep(100L);
-            waited += 100;
-        }
-        return condition.getAsBoolean();
     }
 
 }
