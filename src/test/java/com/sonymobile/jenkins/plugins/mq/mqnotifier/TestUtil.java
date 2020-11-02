@@ -6,15 +6,12 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import hudson.util.Secret;
 import net.sf.json.JSONObject;
-import org.junit.AssumptionViolatedException;
 import org.testcontainers.containers.RabbitMQContainer;
-import org.testcontainers.containers.ToxiproxyContainer;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
