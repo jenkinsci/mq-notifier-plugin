@@ -129,7 +129,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
     public MQNotifierConfig() {
         this.enableNotifier = false;        // default value
         this.persistentDelivery = true;     // default value
-        this.enableVerboseLogging = false;  // default value
+        this.enableVerboseLogging = true;   // default value
     }
 
     @Override
