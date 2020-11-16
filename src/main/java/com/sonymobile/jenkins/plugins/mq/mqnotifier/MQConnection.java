@@ -66,7 +66,7 @@ public final class MQConnection implements ShutdownListener {
     private String virtualHost;
     private Connection connection = null;
 
-    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue();
+    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(10000);
     private volatile ConcurrentNavigableMap<Long, MessageData> outstandingConfirms = new ConcurrentSkipListMap<>();
     private Thread messageQueueThread;
 
@@ -217,7 +217,6 @@ public final class MQConnection implements ShutdownListener {
         }
 
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
-        waitForQueue(); // Block execution until queue is available
         messageQueue.offer(messageData);
     }
 
@@ -255,7 +254,6 @@ public final class MQConnection implements ShutdownListener {
                     channel = createChannel();
                     channel.confirmSelect();
                     addMessageConfirmListener(channel);
-                    setShouldAddToQueue(true);
                 }
                 MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
                                                                          TimeUnit.MILLISECONDS);
@@ -269,7 +267,6 @@ public final class MQConnection implements ShutdownListener {
                 LOGGER.error("error validating channel: ", ioe);
             } catch (ChannelCreationException | MessageDeliveryException transientException) {
                 LOGGER.error(transientException.getMessage(), transientException.getCause());
-                setShouldAddToQueue(false);
                 try {
                     Thread.sleep(CONNECTION_WAIT);
                 } catch (InterruptedException ie) {
@@ -279,27 +276,6 @@ public final class MQConnection implements ShutdownListener {
         }
     }
 
-
-    /**
-     * Enable or disable adding messages to the queue.
-     */
-    private synchronized void setShouldAddToQueue(boolean enabled) {
-        this.shouldAddToQueue = enabled;
-        notifyAll();
-    }
-
-    /**
-     * Wait until it's ok to add messages to the queue again
-     */
-    public synchronized void waitForQueue() {
-        while (!this.shouldAddToQueue) {
-            try {
-                wait();
-            } catch (InterruptedException e)  {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
 
     /**
      * Validate the exchange.
