@@ -69,6 +69,14 @@ public class ConnectionIntegrationTest {
     }
 
     /**
+     * Clean up outstanding messages before running new tests.
+     */
+    @Before
+    public void clearOutstandingConfirms() {
+        MQConnection.getInstance().clearOutstandingConfirms();
+    }
+
+    /**
      * Format an URI to toxiproxy, which will be forwarded to RabbitMQ.
      */
     private String formatProxyServerUri() {
@@ -88,6 +96,7 @@ public class ConnectionIntegrationTest {
         expectedMessages.forEach(conn::publish);
         ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 10, 10, TestUtil.QUEUE_NAME);
         assertEquals(expectedMessages, actualMessages);
+        assertEquals( 0, conn.getSizeOutstandingConfirms());
     }
 
     /**
@@ -105,6 +114,7 @@ public class ConnectionIntegrationTest {
         Thread.sleep(1000);
         getProxy().setConnectionCut(false);
         ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
+        assertEquals( 0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
@@ -162,7 +172,7 @@ public class ConnectionIntegrationTest {
         executor.submit(() -> {
             expectedMessages.forEach(conn::publish);
         });
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 10, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 20, TestUtil.QUEUE_NAME);
         assertEquals( 0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
