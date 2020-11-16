@@ -205,19 +205,18 @@ public final class MQConnection implements ShutdownListener {
      * @param body the message body
      */
     public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
-        if (messageQueueThread == null || !messageQueueThread.isAlive()) {
-            messageQueueThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    sendMessages();
-                }
-            });
-            messageQueueThread.start();
-            LOGGER.info("messageQueueThread recreated since it was null or not alive.");
+        // If addMessageToQueue is called from multiple threads, make sure only one thread is started.
+        synchronized (this) {
+            if (messageQueueThread == null || !messageQueueThread.isAlive()) {
+                messageQueueThread = new Thread(() -> sendMessages());
+                messageQueueThread.start();
+                LOGGER.info("messageQueueThread recreated since it was null or not alive.");
+            }
         }
-
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
-        messageQueue.offer(messageData);
+        if (!messageQueue.offer(messageData)) {
+            LOGGER.error("addMessageToQueue() failed, internal RabbitMQ queue is full!");
+        }
     }
 
     /**
