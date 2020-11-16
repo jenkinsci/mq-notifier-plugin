@@ -66,12 +66,9 @@ public final class MQConnection implements ShutdownListener {
     private String virtualHost;
     private Connection connection = null;
 
-    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(10000);
+    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(100000);
     private volatile ConcurrentNavigableMap<Long, MessageData> outstandingConfirms = new ConcurrentSkipListMap<>();
     private Thread messageQueueThread;
-
-    /* False if messages should not be added to the queue */
-    private volatile boolean shouldAddToQueue = false;
 
 
     /**
