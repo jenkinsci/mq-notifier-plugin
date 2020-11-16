@@ -172,7 +172,7 @@ public class ConnectionIntegrationTest {
         executor.submit(() -> {
             expectedMessages.forEach(conn::publish);
         });
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 20, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 30, TestUtil.QUEUE_NAME);
         assertEquals( 0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }

@@ -259,7 +259,7 @@ public final class MQConnection implements ShutdownListener {
                 }
             } catch (InterruptedException ie) {
                 LOGGER.info("sendMessages() poll() was interrupted: ", ie);
-            } catch (IOException ioe) {
+            } catch (IOException | NullPointerException ioe) {
                 LOGGER.error("error validating channel: ", ioe);
             } catch (ChannelCreationException | MessageDeliveryException transientException) {
                 LOGGER.error(transientException.getMessage(), transientException.getCause());
@@ -278,7 +278,7 @@ public final class MQConnection implements ShutdownListener {
      *
      * @throws IOException if the channel is invalid for the exchange
      */
-    private void validateExchange(Channel channel, String exchange) throws IOException {
+    private void validateExchange(Channel channel, String exchange) throws IOException, NullPointerException {
         if (exchange == null) {
             throw new IOException("Invalid configuration, exchange must not be null.");
         }
