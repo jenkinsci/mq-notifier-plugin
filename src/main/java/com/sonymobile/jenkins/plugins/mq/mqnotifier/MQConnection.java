@@ -276,7 +276,7 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Validate the exchange.
      *
-     * @throws IllegalArgumentException if the channel is null
+     * @throws IllegalArgumentException if the exchange is null
      * @throws IOException if the channel exists, but is invalid for the exchange
      */
     private void validateExchange(Channel channel, String exchange) throws IOException, IllegalArgumentException {
