@@ -74,7 +74,7 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Throw on exceptions when creating a channel
      */
-    private class ChannelCreationException extends Exception {
+    private class ChannelCreationException extends IOException {
 
         public ChannelCreationException(String errorMessage) {
             super(errorMessage);
@@ -88,7 +88,7 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Exception indicating an error delivering a message to MQ
      */
-    private class MessageDeliveryException extends Exception {
+    private class MessageDeliveryException extends IOException {
         public MessageDeliveryException(String errorMessage, Throwable cause) {
             super(errorMessage, cause);
         }
@@ -259,8 +259,6 @@ public final class MQConnection implements ShutdownListener {
                 }
             } catch (InterruptedException ie) {
                 LOGGER.info("sendMessages() poll() was interrupted: ", ie);
-            } catch (IOException | NullPointerException ioe) {
-                LOGGER.error("error validating channel: ", ioe);
             } catch (ChannelCreationException | MessageDeliveryException transientException) {
                 LOGGER.error(transientException.getMessage(), transientException.getCause());
                 try {
@@ -268,6 +266,8 @@ public final class MQConnection implements ShutdownListener {
                 } catch (InterruptedException ie) {
                     LOGGER.error("Thread.sleep() was interrupted", ie);
                 }
+            } catch (IOException | IllegalArgumentException ioe) {
+                LOGGER.error("error validating channel: ", ioe);
             }
         }
     }
@@ -276,11 +276,12 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Validate the exchange.
      *
-     * @throws IOException if the channel is invalid for the exchange
+     * @throws IllegalArgumentException if the channel is null
+     * @throws IOException if the channel exists, but is invalid for the exchange
      */
-    private void validateExchange(Channel channel, String exchange) throws IOException, NullPointerException {
+    private void validateExchange(Channel channel, String exchange) throws IOException, IllegalArgumentException {
         if (exchange == null) {
-            throw new IOException("Invalid configuration, exchange must not be null.");
+            throw new IllegalArgumentException("Invalid configuration, exchange must not be null.");
         }
         channel.exchangeDeclarePassive(exchange);
     }
