@@ -327,7 +327,7 @@ public final class MQConnection implements ShutdownListener {
         // Signature is addConfirmListener(successCallback, errorCallback)
         channel.addConfirmListener(cleanOutstandingConfirms, (sequenceNumber, multiple) -> {
             MessageData message = outstandingConfirms.get(sequenceNumber);
-            messageQueue.add(message);
+            messageQueue.offer(message);
             cleanOutstandingConfirms.handle(sequenceNumber, multiple);
         });
     }
@@ -417,10 +417,10 @@ public final class MQConnection implements ShutdownListener {
                     messageData.getBody()
             );
         } catch (IOException e) {
-            messageQueue.add(messageData);
+            messageQueue.offer(messageData);
             throw new MessageDeliveryException("Cannot publish message", e);
         } catch (AlreadyClosedException e) {
-            messageQueue.add(messageData);
+            messageQueue.offer(messageData);
             throw new MessageDeliveryException("Connection is already closed", e);
         }
     }
