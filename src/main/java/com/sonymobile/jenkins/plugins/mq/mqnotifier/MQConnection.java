@@ -198,6 +198,7 @@ public final class MQConnection implements ShutdownListener {
             bob.deliveryMode(dm);
             bob.contentType(Util.CONTENT_TYPE);
             bob.timestamp(Calendar.getInstance().getTime());
+
             addMessageToQueue(config.getExchangeName(), config.getRoutingKey(),
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }

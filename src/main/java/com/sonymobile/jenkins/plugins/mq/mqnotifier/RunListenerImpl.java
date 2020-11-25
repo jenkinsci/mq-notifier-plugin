@@ -47,64 +47,40 @@ public class RunListenerImpl extends RunListener<Run> {
         super(Run.class);
     }
 
-    @Override
-    public void onStarted(Run r, TaskListener listener) {
-        JSONObject json = new JSONObject();
-        json.put(Util.KEY_STATE, Util.VALUE_STARTED);
-        json.put(Util.KEY_URL, Util.getJobUrl(r));
-        json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
-        json.put(Util.KEY_BUILD_NR, r.getNumber());
-        json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+    private  MQNotifierConfig config = MQNotifierConfig.getInstance();
 
-        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
-            mqDataProvider.provideStartRunData(r, json);
-        }
-        MQConnection.getInstance().publish(json);
-    }
-
-    @Override
-    public void onCompleted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            onDone(r);
-        }
-    }
-
-    @Override
-    public void onFinalized(Run r) {
-        if (!(r instanceof AbstractBuild)) {
-            onDone(r);
-        }
-    }
-
-    @Override
-    public void onDeleted(Run r) {
-        if (r instanceof AbstractBuild) {
-            // Deleting a Job does not fire the RunListener.onDeleted event for its Runs
-            // https://issues.jenkins-ci.org/browse/JENKINS-26708
-            JSONObject json = new JSONObject();
-            json.put(Util.KEY_STATE, Util.VALUE_DELETED);
-            json.put(Util.KEY_URL, Util.getJobUrl(r));
-            json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
-            json.put(Util.KEY_BUILD_NR, r.getNumber());
-            json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
-            json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
-            MQConnection.getInstance().publish(json);
+    private void logMessage(JSONObject message, TaskListener listener) {
+        if(this.config.isVerboseLoggingEnabled()){
+            listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + message.toString(2));
         }
     }
 
     /**
-     * Collect the relevant information from the Run and publish it.
+     * Create a base run message
      *
-     * @param r The run
+     * @param r the current Jenkins run.
+     * @param state the current state of the Job.
+     * @return JSONObject with base run properties set.
      */
-    private void onDone(Run r) {
+    private JSONObject createBaseMessage(Run r, String state){
         JSONObject json = new JSONObject();
-        json.put(Util.KEY_STATE, Util.VALUE_COMPLETED);
         json.put(Util.KEY_URL, Util.getJobUrl(r));
         json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
         json.put(Util.KEY_BUILD_NR, r.getNumber());
-        json.put(Util.KEY_BUILD_DURATION, r.getDuration());
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+        json.put(Util.KEY_STATE, state);
+        return json;
+    }
+
+    /**
+     * Creates a message indicating a job is finished
+     *
+     * @param r the current Jenkins run.
+     * @return JSONObject with base run properties set.
+     */
+    private JSONObject createDoneMessage(Run r){
+        JSONObject json = createBaseMessage(r, Util.VALUE_COMPLETED);
+        json.put(Util.KEY_BUILD_DURATION, r.getDuration());
         String status = "";
         Result res = r.getResult();
         if (res != null) {
@@ -114,6 +90,45 @@ public class RunListenerImpl extends RunListener<Run> {
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideCompletedRunData(r, json);
         }
+        return json;
+    }
+
+
+    @Override
+    public void onStarted(Run r, TaskListener listener) {
+        JSONObject json = createBaseMessage(r, Util.VALUE_STARTED);
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideStartRunData(r, json);
+        }
+        logMessage(json, listener);
         MQConnection.getInstance().publish(json);
+    }
+
+    @Override
+    public void onCompleted(Run r, TaskListener listener) {
+        if (r instanceof AbstractBuild) {
+            JSONObject json = createDoneMessage(r);
+            logMessage(json, listener);
+            MQConnection.getInstance().publish(json);
+        }
+    }
+
+    @Override
+    public void onFinalized(Run r) {
+        if (!(r instanceof AbstractBuild)) {
+            JSONObject json = createDoneMessage(r);
+            MQConnection.getInstance().publish(json);
+        }
+    }
+
+    @Override
+    public void onDeleted(Run r) {
+        if (r instanceof AbstractBuild) {
+            // Deleting a Job does not fire the RunListener.onDeleted event for its Runs
+            // https://issues.jenkins-ci.org/browse/JENKINS-26708
+            JSONObject json = createBaseMessage(r, Util.VALUE_DELETED);
+            json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
+            MQConnection.getInstance().publish(json);
+        }
     }
 }

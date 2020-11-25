@@ -98,6 +98,7 @@ public class PluginTest {
         config.setRoutingKey(ROUTING);
         config.setVirtualHost(null);
         config.setEnableNotifier(false);
+        config.setEnableVerboseLogging(false);
 
         if (config != null && config.isNotifierEnabled()) {
             conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
@@ -215,6 +216,29 @@ public class PluginTest {
 
         j.buildAndAssertSuccess(job);
         assertThat(Mocks.MESSAGES, Matchers.hasItem(message));
+    }
+
+    /**
+     * Test that publishMQMessage correctly logs the custom message when verbose logging is on.
+     *
+     * @throws Exception thrown
+     */
+    @Test
+    public void testPipelineStepLogsMessage() throws Exception {
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
+        config.setEnableNotifier(true);
+        config.setEnableVerboseLogging(true);
+
+        String message = "{\"key\":\"value\"}";
+
+        WorkflowJob job = j.createProject(WorkflowJob.class);
+        job.setDefinition(new CpsFlowDefinition("publishMQMessage '" + message + "'", true));
+
+        j.buildAndAssertSuccess(job);
+        j.assertLogContains(
+                "Posting JSON message to RabbitMQ:\n{\"key\": \"value\"}",
+                job.getLastCompletedBuild()
+        );
     }
 
     /**

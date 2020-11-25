@@ -62,6 +62,9 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
     /* The status whether the plugin is enabled */
     private boolean enableNotifier;
 
+    /* Whether to use verbose logging or not */
+    private boolean enableVerboseLogging;
+
     /* The MQ server URI */
     private String serverUri;
     private String userName;
@@ -85,20 +88,21 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
     /**
      * Creates an instance with specified parameters.
      *
-     * @param enableNotifier     if this plugin is enabled
-     * @param serverUri          the server uri
-     * @param userName           the user name
-     * @param userPassword       the user password
-     * @param exchangeName       the name of the exchange
-     * @param virtualHost        the name of the virtual host
-     * @param routingKey         the routing key
-     * @param persistentDelivery if using persistent delivery mode
-     * @param appId              the application id
+     * @param enableNotifier        if this plugin is enabled
+     * @param serverUri             the server uri
+     * @param userName              the user name
+     * @param userPassword          the user password
+     * @param exchangeName          the name of the exchange
+     * @param virtualHost           the name of the virtual host
+     * @param routingKey            the routing key
+     * @param persistentDelivery    if using persistent delivery mode
+     * @param appId                 the application id
+     * @param enableVerboseLogging  if verbose logging is enabled
      */
     @DataBoundConstructor
     public MQNotifierConfig(boolean enableNotifier, String serverUri, String userName, Secret userPassword,
                             String exchangeName, String virtualHost, String routingKey, boolean persistentDelivery,
-                            String appId) {
+                            String appId, boolean enableVerboseLogging) {
         this.enableNotifier = enableNotifier;
         this.serverUri = serverUri;
         this.userName = userName;
@@ -108,6 +112,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
         this.routingKey = routingKey;
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
+        this.enableVerboseLogging = enableVerboseLogging;
     }
 
     @Override
@@ -122,8 +127,9 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
      * Load configuration on invoke.
      */
     public MQNotifierConfig() {
-        this.enableNotifier = false;    // default value
-        this.persistentDelivery = true; // default value
+        this.enableNotifier = false;        // default value
+        this.persistentDelivery = true;     // default value
+        this.enableVerboseLogging = true;   // default value
     }
 
     @Override
@@ -150,6 +156,24 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
      */
     public void setEnableNotifier(boolean enableNotifier) {
         this.enableNotifier = enableNotifier;
+    }
+
+    /**
+     * Gets whether verbose logging is enabled or not.
+     *
+     * @return true if verbose logging is enabled.
+     */
+    public boolean isVerboseLoggingEnabled() {
+        return this.enableVerboseLogging;
+    }
+
+    /**
+     * Sets flag whether verbose logging is enabled or not.
+     *
+     * @param enableVerboseLogging true if this verbose logging is enabled.
+     */
+    public void setEnableVerboseLogging(boolean enableVerboseLogging) {
+        this.enableVerboseLogging = enableVerboseLogging;
     }
 
     /**
