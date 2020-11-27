@@ -26,6 +26,7 @@ package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmCallback;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ShutdownListener;
@@ -42,8 +43,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Creates an MQ connection.
@@ -53,7 +57,6 @@ import java.util.concurrent.TimeUnit;
 public final class MQConnection implements ShutdownListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(MQConnection.class);
     private static final int HEARTBEAT_INTERVAL = 30;
-    private static final int MESSAGE_QUEUE_SIZE = 1000;
     private static final int SENDMESSAGE_TIMEOUT = 100;
     private static final int CONNECTION_WAIT = 10000;
 
@@ -62,10 +65,34 @@ public final class MQConnection implements ShutdownListener {
     private String serverUri;
     private String virtualHost;
     private Connection connection = null;
-    private Channel channel = null;
 
-    private volatile LinkedBlockingQueue messageQueue;
+    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(100000);
+    private volatile ConcurrentNavigableMap<Long, MessageData> outstandingConfirms = new ConcurrentSkipListMap<>();
     private Thread messageQueueThread;
+
+
+    /**
+     * Throw on exceptions when creating a channel
+     */
+    private class ChannelCreationException extends IOException {
+
+        public ChannelCreationException(String errorMessage) {
+            super(errorMessage);
+        }
+
+        public ChannelCreationException(String errorMessage, Throwable cause) {
+            super(errorMessage, cause);
+        }
+    }
+
+    /**
+     * Exception indicating an error delivering a message to MQ
+     */
+    private class MessageDeliveryException extends IOException {
+        public MessageDeliveryException(String errorMessage, Throwable cause) {
+            super(errorMessage, cause);
+        }
+    }
 
     /**
      * Lazy-loaded singleton using the initialization-on-demand holder pattern.
@@ -151,6 +178,22 @@ public final class MQConnection implements ShutdownListener {
     }
 
     /**
+     * Get the number of currently outstanding confirms
+     *
+     * @return the number of currently outstanding confirms
+     */
+    public int getSizeOutstandingConfirms() {
+        return outstandingConfirms.size();
+    }
+
+    /**
+     * Clear the outstanding confirms list, useful when testing.
+     */
+    public void clearOutstandingConfirms() {
+        outstandingConfirms.clear();
+    }
+
+    /**
      * Puts a message in the message queue.
      *
      * @param exchange the exchange to publish the message to
@@ -159,25 +202,17 @@ public final class MQConnection implements ShutdownListener {
      * @param body the message body
      */
     public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
+        // If addMessageToQueue is called from multiple threads, make sure only one thread is started.
         synchronized (this) {
-            if (messageQueue == null) {
-                messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
-            }
             if (messageQueueThread == null || !messageQueueThread.isAlive()) {
-                messageQueueThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendMessages();
-                    }
-                });
+                messageQueueThread = new Thread(() -> sendMessages());
                 messageQueueThread.start();
                 LOGGER.info("messageQueueThread recreated since it was null or not alive.");
             }
         }
-
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
         if (!messageQueue.offer(messageData)) {
-            LOGGER.error("addMessageToQueue() failed, RabbitMQ queue is full!");
+            LOGGER.error("addMessageToQueue() failed, internal RabbitMQ queue is full!");
         }
     }
 
@@ -208,18 +243,94 @@ public final class MQConnection implements ShutdownListener {
      * Sends messages from the message queue.
      */
     private void sendMessages() {
+        Channel channel = null;
+
         while (true) {
             try {
-                MessageData messageData = (MessageData)messageQueue.poll(SENDMESSAGE_TIMEOUT,
+                if (channel == null || !channel.isOpen()) {
+                    channel = createChannel();
+                    channel.confirmSelect();
+                    addMessageConfirmListener(channel);
+                }
+                MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
                                                                          TimeUnit.MILLISECONDS);
                 if (messageData != null) {
-                    getInstance().send(messageData.getExchange(), messageData.getRoutingKey(),
-                            messageData.getProps(), messageData.getBody());
+                    validateExchange(channel, messageData.getExchange());
+                    getInstance().sendOnChannel(messageData, channel);
                 }
             } catch (InterruptedException ie) {
                 LOGGER.info("sendMessages() poll() was interrupted: ", ie);
+            } catch (ChannelCreationException | MessageDeliveryException transientException) {
+                LOGGER.error(transientException.getMessage(), transientException.getCause());
+                try {
+                    Thread.sleep(CONNECTION_WAIT);
+                } catch (InterruptedException ie) {
+                    LOGGER.error("Thread.sleep() was interrupted", ie);
+                }
+            } catch (IOException | IllegalArgumentException ioe) {
+                LOGGER.error("error validating channel: ", ioe);
             }
         }
+    }
+
+
+    /**
+     * Validate the exchange.
+     *
+     * @param channel a channel that must contain the given exchange
+     * @param exchange the exchange to validate
+     *
+     * @throws IllegalArgumentException if the exchange is null
+     * @throws IOException if the exchange exists, but is invalid for the channel
+     */
+    private void validateExchange(Channel channel, String exchange) throws IOException, IllegalArgumentException {
+        if (exchange == null) {
+            throw new IllegalArgumentException("Invalid configuration, exchange must not be null.");
+        }
+        channel.exchangeDeclarePassive(exchange);
+    }
+
+    /**
+     * Try to create a channel using a connection.
+     *
+     * @return a Channel
+     */
+    private Channel createChannel() throws ChannelCreationException {
+        try {
+            connection = getConnection();
+            if (connection != null) {
+                LOGGER.debug("Channel successfully created");
+                return connection.createChannel();
+            }
+            throw new ChannelCreationException("Cannot create channel, no connection found");
+        } catch (IOException | ShutdownSignalException e) {
+            throw new ChannelCreationException("Cannot create channel", e);
+        }
+    }
+
+    /**
+     * Add an async listener for ack/nack events and remove accordingly.
+     *
+     * @param channel the channel to configure a confirm listener for
+     */
+    private void addMessageConfirmListener(Channel channel) {
+        ConfirmCallback cleanOutstandingConfirms = (sequenceNumber, multiple) -> {
+            if (multiple) {
+                ConcurrentNavigableMap<Long, MessageData> confirmed = this.outstandingConfirms.headMap(
+                        sequenceNumber, true
+                );
+                confirmed.clear();
+            } else {
+                this.outstandingConfirms.remove(sequenceNumber);
+            }
+        };
+
+        // Signature is addConfirmListener(successCallback, errorCallback)
+        channel.addConfirmListener(cleanOutstandingConfirms, (sequenceNumber, multiple) -> {
+            MessageData message = outstandingConfirms.get(sequenceNumber);
+            messageQueue.offer(message);
+            cleanOutstandingConfirms.handle(sequenceNumber, multiple);
+        });
     }
 
     /**
@@ -267,6 +378,8 @@ public final class MQConnection implements ShutdownListener {
                 connection.addShutdownListener(this);
             } catch (IOException e) {
                 LOGGER.warn("Connection refused", e);
+            } catch (TimeoutException te) {
+                LOGGER.warn("Attempt to connect timed out: ", te);
             }
         }
         return connection;
@@ -286,60 +399,30 @@ public final class MQConnection implements ShutdownListener {
         serverUri = uri;
         virtualHost = vh;
         connection = null;
-        channel = null;
     }
 
     /**
      * Sends a message.
      * Keeps trying to get a connection indefinitely.
      *
-     * @param exchange the exchange to publish the message to
-     * @param routingKey the routing key
-     * @param props other properties for the message - routing headers etc
-     * @param body the message body
+     * @param messageData an object containing message data
+     * @param channel a channel to publish the message on
      */
-    private void send(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
-        if (exchange == null) {
-            LOGGER.error("Invalid configuration, exchange must not be null.");
-            return;
-        }
-
-        while (true) {
-            try {
-                if (channel == null || !channel.isOpen()) {
-                    connection = getConnection();
-                    if (connection != null) {
-                        channel = connection.createChannel();
-                        if (!getConnection().getAddress().isLoopbackAddress()) {
-                            channel.exchangeDeclarePassive(exchange);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                LOGGER.error("Cannot create channel", e);
-                channel = null; // reset
-            } catch (ShutdownSignalException e) {
-                LOGGER.error("Cannot create channel", e);
-                channel = null; // reset
-                break;
-            }
-            if (channel != null) {
-                try {
-                    channel.basicPublish(exchange, routingKey, props, body);
-                } catch (IOException e) {
-                    LOGGER.error("Cannot publish message", e);
-                } catch (AlreadyClosedException e) {
-                    LOGGER.error("Connection is already closed", e);
-                }
-
-                break;
-            } else {
-                try {
-                    Thread.sleep(CONNECTION_WAIT);
-                } catch (InterruptedException ie) {
-                    LOGGER.error("Thread.sleep() was interrupted", ie);
-                }
-            }
+    private void sendOnChannel(MessageData messageData, Channel channel) throws MessageDeliveryException {
+        try {
+            outstandingConfirms.put(channel.getNextPublishSeqNo(), messageData);
+            channel.basicPublish(
+                    messageData.getExchange(),
+                    messageData.getRoutingKey(),
+                    messageData.getProps(),
+                    messageData.getBody()
+            );
+        } catch (IOException e) {
+            messageQueue.offer(messageData);
+            throw new MessageDeliveryException("Cannot publish message", e);
+        } catch (AlreadyClosedException e) {
+            messageQueue.offer(messageData);
+            throw new MessageDeliveryException("Connection is already closed", e);
         }
     }
 
@@ -352,15 +435,11 @@ public final class MQConnection implements ShutdownListener {
                     if (connection != null && connection.isOpen()) {
                         connection.close();
                     }
-                    if (channel != null && channel.isOpen()) {
-                        channel.close();
-                    }
                 } catch (IOException e) {
                     LOGGER.error("IOException: ", e);
                 } catch (AlreadyClosedException e) {
                     LOGGER.error("AlreadyClosedException: ", e);
                 } finally {
-                    channel = null;
                     connection = null;
                 }
             }
