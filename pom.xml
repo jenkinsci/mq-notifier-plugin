@@ -168,7 +168,10 @@
         <configuration>
           <configLocation>swe_checkstyle.xml</configLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+          </sourceDirectories>
         </configuration>
         <executions>
           <execution>

@@ -101,7 +101,12 @@ public class PluginTest {
         config.setEnableVerboseLogging(false);
 
         if (config != null && config.isNotifierEnabled()) {
-            conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
+            conn.initialize(
+                    config.getUserName(),
+                    config.getUserPassword(),
+                    config.getServerUri(),
+                    config.getVirtualHost()
+            );
             String message = new String(MESSAGE);
 
             conn.addMessageToQueue(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());
@@ -124,7 +129,12 @@ public class PluginTest {
         config.setEnableNotifier(true);
 
         if (config != null && config.isNotifierEnabled()) {
-            conn.initialize(config.getUserName(), config.getUserPassword(), config.getServerUri(), config.getVirtualHost());
+            conn.initialize(
+                    config.getUserName(),
+                    config.getUserPassword(),
+                    config.getServerUri(),
+                    config.getVirtualHost()
+            );
             String message = new String(MESSAGE);
 
             conn.addMessageToQueue(config.getExchangeName(), config.getRoutingKey(), null, message.getBytes());

@@ -50,7 +50,7 @@ public class RunListenerImpl extends RunListener<Run> {
     private  MQNotifierConfig config = MQNotifierConfig.getInstance();
 
     private void logMessage(JSONObject message, TaskListener listener) {
-        if(this.config.isVerboseLoggingEnabled()){
+        if (this.config.isVerboseLoggingEnabled()) {
             listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + message.toString(2));
         }
     }
@@ -62,7 +62,7 @@ public class RunListenerImpl extends RunListener<Run> {
      * @param state the current state of the Job.
      * @return JSONObject with base run properties set.
      */
-    private JSONObject createBaseMessage(Run r, String state){
+    private JSONObject createBaseMessage(Run r, String state) {
         JSONObject json = new JSONObject();
         json.put(Util.KEY_URL, Util.getJobUrl(r));
         json.put(Util.KEY_PROJECT_NAME, r.getParent().getFullName());
@@ -78,7 +78,7 @@ public class RunListenerImpl extends RunListener<Run> {
      * @param r the current Jenkins run.
      * @return JSONObject with base run properties set.
      */
-    private JSONObject createDoneMessage(Run r){
+    private JSONObject createDoneMessage(Run r) {
         JSONObject json = createBaseMessage(r, Util.VALUE_COMPLETED);
         json.put(Util.KEY_BUILD_DURATION, r.getDuration());
         String status = "";

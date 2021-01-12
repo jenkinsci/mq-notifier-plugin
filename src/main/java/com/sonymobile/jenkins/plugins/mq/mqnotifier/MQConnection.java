@@ -56,9 +56,10 @@ import java.util.concurrent.TimeoutException;
  */
 public final class MQConnection implements ShutdownListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(MQConnection.class);
-    private static final int HEARTBEAT_INTERVAL = 30;
-    private static final int SENDMESSAGE_TIMEOUT = 100;
     private static final int CONNECTION_WAIT = 10000;
+    private static final int HEARTBEAT_INTERVAL = 30;
+    private static final int MESSAGE_QUEUE_SIZE = 100000;
+    private static final int SENDMESSAGE_TIMEOUT = 100;
 
     private String userName;
     private Secret userPassword;
@@ -66,7 +67,7 @@ public final class MQConnection implements ShutdownListener {
     private String virtualHost;
     private Connection connection = null;
 
-    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(100000);
+    private volatile LinkedBlockingQueue messageQueue = new LinkedBlockingQueue(MESSAGE_QUEUE_SIZE);
     private volatile ConcurrentNavigableMap<Long, MessageData> outstandingConfirms = new ConcurrentSkipListMap<>();
     private Thread messageQueueThread;
 
@@ -178,7 +179,7 @@ public final class MQConnection implements ShutdownListener {
     }
 
     /**
-     * Get the number of currently outstanding confirms
+     * Get the number of currently outstanding confirms.
      *
      * @return the number of currently outstanding confirms
      */
@@ -252,7 +253,7 @@ public final class MQConnection implements ShutdownListener {
                     channel.confirmSelect();
                     addMessageConfirmListener(channel);
                 }
-                MessageData messageData = (MessageData) messageQueue.poll(SENDMESSAGE_TIMEOUT,
+                MessageData messageData = (MessageData)messageQueue.poll(SENDMESSAGE_TIMEOUT,
                                                                          TimeUnit.MILLISECONDS);
                 if (messageData != null) {
                     validateExchange(channel, messageData.getExchange());
