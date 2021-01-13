@@ -23,13 +23,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.testcontainers.containers.Network.newNetwork;
 
 /**
- * Integration tests for the MQConnection
+ * Integration tests for the MQConnection.
  *
  * @author Hampus Johansson
  */
+@SuppressWarnings({"checkstyle:magicnumber", "checkstyle:javadocvariable"})
 public class ConnectionIntegrationTest {
 
     private static final String TOXIPROXY_NETWORK_ALIAS = "toxiproxy";
+    private static final int DEFAULT_MESSAGE_WAIT = 10;
 
     RabbitMQContainer defaultMQContainer = TestUtil.getDefaultMQContainer();
     ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -37,7 +39,7 @@ public class ConnectionIntegrationTest {
     @Rule
     public Network network = newNetwork();
 
-    public ToxiproxyContainer toxiproxy = new ToxiproxyContainer()
+    private ToxiproxyContainer toxiproxy = new ToxiproxyContainer()
             .withNetwork(network)
             .withNetworkAliases(TOXIPROXY_NETWORK_ALIAS);
 
@@ -92,11 +94,17 @@ public class ConnectionIntegrationTest {
     @Test
     public void testSentMessagesHasCorrectFormat() throws IOException, InterruptedException {
         MQConnection conn = MQConnection.getInstance();
-        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(10);
+        int messageCount = 10;
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(messageCount);
         expectedMessages.forEach(conn::publish);
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 10, 10, TestUtil.QUEUE_NAME);
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(
+                conn,
+                messageCount,
+                DEFAULT_MESSAGE_WAIT,
+                TestUtil.QUEUE_NAME
+        );
         assertEquals(expectedMessages, actualMessages);
-        assertEquals( 0, conn.getSizeOutstandingConfirms());
+        assertEquals(0, conn.getSizeOutstandingConfirms());
     }
 
     /**
@@ -105,7 +113,8 @@ public class ConnectionIntegrationTest {
     @Test
     public void testSendMessagesHandlesClosedConnection() throws InterruptedException, IOException {
         MQConnection conn = MQConnection.getInstance();
-        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(1000);
+        int messageCount = 1000;
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(messageCount);
 
         getProxy().setConnectionCut(true);
         executor.submit(() -> {
@@ -113,8 +122,13 @@ public class ConnectionIntegrationTest {
         });
         Thread.sleep(1000);
         getProxy().setConnectionCut(false);
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
-        assertEquals( 0, conn.getSizeOutstandingConfirms());
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(
+                conn,
+                messageCount,
+                DEFAULT_MESSAGE_WAIT,
+                TestUtil.QUEUE_NAME
+        );
+        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
@@ -124,56 +138,69 @@ public class ConnectionIntegrationTest {
     @Test
     public void testSendMessagesHandlesUpstreamTimeout() throws InterruptedException, IOException {
         MQConnection conn = MQConnection.getInstance();
-        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(1000);
+        int messageCount = 1000;
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(messageCount);
         getProxy().toxics().timeout("timeout", ToxicDirection.UPSTREAM, 8000);
         executor.submit(() -> {
             expectedMessages.forEach(conn::publish);
         });
         Thread.sleep(8000);
         getProxy().toxics().get("timeout", Timeout.class).remove();
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
-        assertEquals( 0, conn.getSizeOutstandingConfirms());
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(
+                conn,
+                messageCount,
+                DEFAULT_MESSAGE_WAIT,
+                TestUtil.QUEUE_NAME
+        );
+        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
     /**
-     * Test that the MQNotifier won't lose messages when the connection flickers
+     * Test that the MQNotifier won't lose messages when the connection flickers.
      */
     @Test
     public void testSendMessagesHandlesConnectionFlicker() throws InterruptedException, IOException {
         MQConnection conn = MQConnection.getInstance();
-        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(1000);
+        int messageCount = 1000;
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(messageCount);
         executor.submit(() -> {
-            expectedMessages.subList(0,500).forEach(conn::publish);
+            expectedMessages.subList(0, 500).forEach(conn::publish);
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            expectedMessages.subList(500, 1000).forEach(conn::publish);
+            expectedMessages.subList(messageCount / 2, messageCount).forEach(conn::publish);
         });
         Thread.sleep(1000);
         getProxy().setConnectionCut(true);
         Thread.sleep(5000);
         getProxy().setConnectionCut(false);
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 1000, 10, TestUtil.QUEUE_NAME);
-        assertEquals( 0, conn.getSizeOutstandingConfirms());
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(
+                conn,
+                messageCount,
+                DEFAULT_MESSAGE_WAIT,
+                TestUtil.QUEUE_NAME
+        );
+        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
     /**
-     * Test that the MQNotifier won't lose messages on high latency
+     * Test that the MQNotifier won't lose messages on high latency.
      */
     @Test
     public void testSendMessagesHandlesLatency() throws InterruptedException, IOException {
         MQConnection conn = MQConnection.getInstance();
-        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(3);
+        int messageCount = 2;
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(2);
         getProxy().toxics().latency("latency", ToxicDirection.DOWNSTREAM, 4000).setJitter(2000);
         executor.submit(() -> {
             expectedMessages.forEach(conn::publish);
         });
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 3, 30, TestUtil.QUEUE_NAME);
-        assertEquals( 0, conn.getSizeOutstandingConfirms());
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 2, 30, TestUtil.QUEUE_NAME);
+        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 

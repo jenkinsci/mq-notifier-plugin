@@ -164,12 +164,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.11</version>
+        <version>3.1.1</version>
         <configuration>
           <configLocation>swe_checkstyle.xml</configLocation>
-          <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+          </sourceDirectories>
         </configuration>
         <executions>
           <execution>

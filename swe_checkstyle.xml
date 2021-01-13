@@ -18,11 +18,18 @@
         <property name="message" value="Line has trailing spaces."/>
         <property name="severity" value="error"/>
     </module>
-
+    <module name="LineLength">
+        <property name="max" value="121"/>
+    </module>
     <module name="TreeWalker">
-        <module name="FileContentsHolder"/>
         <module name="ConstantName">
             <property name="format" value="^logger|([A-Z][A-Z0-9]*(_[A-Z0-9]+)*)$"/>
+        </module>
+        <module name="SuppressWarningsHolder" />
+        <module name="SuppressWithNearbyCommentFilter">
+            <property name="commentFormat" value="CS IGNORE (\w+) FOR NEXT (\d+) LINES\. REASON\: \w+"/>
+            <property name="checkFormat" value="$1"/>
+            <property name="influenceFormat" value="$2"/>
         </module>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
@@ -37,9 +44,6 @@
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
-        <module name="LineLength">
-                    <property name="max" value="121"/>
-        </module>
         <module name="MethodLength"/>
         <module name="EmptyForIteratorPad"/>
         <module name="MethodParamPad"/>
@@ -79,12 +83,10 @@
         </module>
         <module name="IllegalInstantiation"/>
         <module name="InnerAssignment"/>
-        <module name="MagicNumber"/>
-        <module name="MissingSwitchDefault"/>
-        <module name="RedundantThrows">
-                   <property name="logLoadErrors" value="true"/>
-                <property name="suppressLoadErrors" value="true"/>
+        <module name="MagicNumber">
+            <property name="id" value="checkstyle:magicnumber"/>
         </module>
+        <module name="MissingSwitchDefault"/>
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="CovariantEquals"/>
@@ -105,18 +107,14 @@
                     <property name="severity" value="ignore"/>
         </module>
         <module name="UpperEll"/>
-        <module name="JavadocMethod">
-                    <property name="logLoadErrors" value="true"/>
-                    <property name="suppressLoadErrors" value="true"/>
-        </module>
         <module name="JavadocStyle">
                    <property name="scope" value="protected"/>
         </module>
         <module name="JavadocType"/>
         <module name="JavadocVariable">
                    <property name="scope" value="protected"/>
+            <property name="id" value="checkstyle:javadocvariable"/>
         </module>
-        <module name="FileContentsHolder"/>
         <module name="MultipleVariableDeclarations" >
                     <property name="severity" value="warning"/>
         </module>
@@ -126,13 +124,5 @@
     </module>
     <module name="NewlineAtEndOfFile"/>
     <module name="Translation"/>
-    <!-- Ignore generated code -->
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="This file was auto-generated from WSDL"/>
-    </module>
-    <module name="SuppressWithNearbyCommentFilter">
-        <property name="commentFormat" value="CS IGNORE (\w+) FOR NEXT (\d+) LINES\. REASON\: \w+"/>
-        <property name="checkFormat" value="$1"/>
-        <property name="influenceFormat" value="$2"/>
-    </module>
+    <module name="SuppressWarningsFilter"/>
 </module>

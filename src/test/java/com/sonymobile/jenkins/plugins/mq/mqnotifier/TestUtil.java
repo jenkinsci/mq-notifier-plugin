@@ -20,13 +20,20 @@ import java.util.stream.IntStream;
  *
  * @author Hampus Johansson
  */
+@SuppressWarnings({"checkstyle:magicnumber", "checkstyle:javadocvariable"})
 public final class TestUtil {
 
     public static final String EXCHANGE = "jenkins";
     public static final String QUEUE_NAME = "test-queue";
     public static final int PORT = 5672;
+    public static final int UI_PORT = 15672;
 
     private static RabbitMQContainer defaultMQContainer = null;
+
+    /**
+     * Empty, not called, constructor.
+     */
+    private TestUtil() { }
 
     /**
      * Creates a default RabbitMQ container to run tests against. It declares an Exchange (EXCHANGE)
@@ -39,7 +46,7 @@ public final class TestUtil {
         if (defaultMQContainer == null) {
             defaultMQContainer = new RabbitMQContainer("rabbitmq:3-management")
                     .withExposedPorts(PORT)
-                    .withExposedPorts(15672)
+                    .withExposedPorts(UI_PORT)
                     .withExchange(EXCHANGE, "direct")
                     .withQueue(QUEUE_NAME)
                     .withBinding(EXCHANGE, QUEUE_NAME);
@@ -83,7 +90,7 @@ public final class TestUtil {
             try {
                 channel = conn.getConnection().createChannel();
                 Thread.sleep(1000);
-            }catch (Exception ignored){}
+            } catch (Exception ignored) { }
         }
         LinkedBlockingQueue<JSONObject> foundMessages = new LinkedBlockingQueue<>();
         ArrayList<JSONObject> foundMessagesArray = new ArrayList<>();
@@ -107,7 +114,7 @@ public final class TestUtil {
         channel.basicConsume(queueName, true, consumer);
 
         synchronized (foundMessages) {
-            while(foundMessages.size() != numberExpectedMessages) {
+            while (foundMessages.size() != numberExpectedMessages) {
                 foundMessages.wait(Duration.ofSeconds(secondsWaitPerMessage).toMillis());
             }
             foundMessages.drainTo(foundMessagesArray);
@@ -123,7 +130,7 @@ public final class TestUtil {
      * @return list of messages
      */
     public static ArrayList<JSONObject> createMessages(int count) {
-        return IntStream.range(1, count+1).mapToObj(i -> {
+        return IntStream.range(1, count + 1).mapToObj(i -> {
             JSONObject message = new JSONObject();
             message.put("test", "test" + i);
             return message;
