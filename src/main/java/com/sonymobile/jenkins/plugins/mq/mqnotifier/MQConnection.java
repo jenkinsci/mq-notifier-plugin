@@ -75,7 +75,7 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Throw on exceptions when creating a channel
      */
-    private class ChannelCreationException extends IOException {
+    private static class ChannelCreationException extends IOException {
 
         public ChannelCreationException(String errorMessage) {
             super(errorMessage);
@@ -89,7 +89,7 @@ public final class MQConnection implements ShutdownListener {
     /**
      * Exception indicating an error delivering a message to MQ
      */
-    private class MessageDeliveryException extends IOException {
+    private static class MessageDeliveryException extends IOException {
         public MessageDeliveryException(String errorMessage, Throwable cause) {
             super(errorMessage, cause);
         }
