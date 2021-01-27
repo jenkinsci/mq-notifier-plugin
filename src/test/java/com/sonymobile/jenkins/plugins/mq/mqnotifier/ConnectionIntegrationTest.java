@@ -104,6 +104,24 @@ public class ConnectionIntegrationTest {
                 TestUtil.QUEUE_NAME
         );
         assertEquals(expectedMessages, actualMessages);
+    }
+
+    /**
+     * Test that the MQNotifier plugin receive ACKs.
+     */
+    @Test
+    public void testSentMessagesReceiveACKs() throws IOException, InterruptedException {
+        MQConnection conn = MQConnection.getInstance();
+        int messageCount = 25;
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(messageCount);
+        expectedMessages.forEach(conn::publish);
+        TestUtil.waitForMessages(
+                conn,
+                messageCount,
+                DEFAULT_MESSAGE_WAIT,
+                TestUtil.QUEUE_NAME
+        );
+        Thread.sleep(2000); // Make sure the ACKs have some time to get processed.
         assertEquals(0, conn.getSizeOutstandingConfirms());
     }
 
@@ -128,7 +146,6 @@ public class ConnectionIntegrationTest {
                 DEFAULT_MESSAGE_WAIT,
                 TestUtil.QUEUE_NAME
         );
-        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
@@ -152,7 +169,6 @@ public class ConnectionIntegrationTest {
                 DEFAULT_MESSAGE_WAIT,
                 TestUtil.QUEUE_NAME
         );
-        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
@@ -183,7 +199,6 @@ public class ConnectionIntegrationTest {
                 DEFAULT_MESSAGE_WAIT,
                 TestUtil.QUEUE_NAME
         );
-        assertEquals(0, conn.getSizeOutstandingConfirms());
         assertEquals(expectedMessages, actualMessages);
     }
 
@@ -194,13 +209,16 @@ public class ConnectionIntegrationTest {
     public void testSendMessagesHandlesLatency() throws InterruptedException, IOException {
         MQConnection conn = MQConnection.getInstance();
         int messageCount = 2;
-        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(2);
-        getProxy().toxics().latency("latency", ToxicDirection.DOWNSTREAM, 4000).setJitter(2000);
+        ArrayList<JSONObject> expectedMessages = TestUtil.createMessages(messageCount);
+        getProxy().toxics().latency("latency", ToxicDirection.UPSTREAM, 2000).setJitter(2000);
         executor.submit(() -> {
             expectedMessages.forEach(conn::publish);
         });
-        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(conn, 2, 30, TestUtil.QUEUE_NAME);
-        assertEquals(0, conn.getSizeOutstandingConfirms());
+        ArrayList<JSONObject> actualMessages = TestUtil.waitForMessages(
+                conn,
+                messageCount,
+                30,
+                TestUtil.QUEUE_NAME);
         assertEquals(expectedMessages, actualMessages);
     }
 
