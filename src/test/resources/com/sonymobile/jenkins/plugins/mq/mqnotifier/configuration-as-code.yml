@@ -1,0 +1,8 @@
+unclassified:
+  mqNotifier:
+    userName: "hampus"
+    routingKey: "jenkins"
+    serverUri: "elasticsearch.tools.axis.com"
+    enableNotifier: false
+    enableVerboseLogging: true
+    persistentDelivery: false

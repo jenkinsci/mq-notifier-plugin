@@ -224,7 +224,7 @@ public final class MQConnection implements ShutdownListener {
      */
     public void publish(JSONObject json) {
         MQNotifierConfig config = MQNotifierConfig.getInstance();
-        if (config != null && config.isNotifierEnabled()) {
+        if (config != null && config.getEnableNotifier()) {
             AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
             int dm = 1;
             if (config.getPersistentDelivery()) {
