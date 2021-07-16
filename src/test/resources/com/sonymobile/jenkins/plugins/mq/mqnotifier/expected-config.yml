@@ -3,5 +3,5 @@ enableVerboseLogging: true
 exchangeName: "test"
 persistentDelivery: false
 routingKey: "jenkins"
-serverUri: "elasticsearch.tools.axis.com"
-userName: "hampus"
+serverUri: "mq.test.com"
+userName: "johndoe"

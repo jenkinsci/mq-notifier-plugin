@@ -29,8 +29,8 @@ public class ConfigurationAsCodeTest {
     public void shouldSupportConfigurationAsCode() {
         MQNotifierConfig config = MQNotifierConfig.getInstance();
         /* assertAll not available in junit 4 */
-        assertEquals("hampus", config.getUserName());
-        assertEquals("elasticsearch.tools.axis.com", config.getServerUri());
+        assertEquals("johndoe", config.getUserName());
+        assertEquals("mq.test.com", config.getServerUri());
         assertEquals("jenkins", config.getRoutingKey());
         assertFalse(config.getEnableNotifier());
         assertFalse(config.getPersistentDelivery());
@@ -40,8 +40,8 @@ public class ConfigurationAsCodeTest {
     @Test
     public void shouldSupportConfigurationExport() throws Exception {
         MQNotifierConfig config = MQNotifierConfig.getInstance();
-        config.setUserName("hampus");
-        config.setServerUri("elasticsearch.tools.axis.com");
+        config.setUserName("johndoe");
+        config.setServerUri("mq.test.com");
         config.setExchangeName("test");
         config.setEnableNotifier(false);
         config.setRoutingKey("jenkins");

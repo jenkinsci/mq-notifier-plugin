@@ -1,8 +1,8 @@
 unclassified:
   mqNotifier:
-    userName: "hampus"
+    userName: "johndoe"
     routingKey: "jenkins"
-    serverUri: "elasticsearch.tools.axis.com"
+    serverUri: "mq.test.com"
     enableNotifier: false
     enableVerboseLogging: true
     persistentDelivery: false
