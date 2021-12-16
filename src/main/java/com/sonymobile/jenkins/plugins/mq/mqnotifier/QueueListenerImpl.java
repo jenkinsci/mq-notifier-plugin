@@ -51,6 +51,7 @@ public class QueueListenerImpl extends QueueListener {
         Label assignedLabel = i.getAssignedLabel();
         json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,
                 assignedLabel != null ? assignedLabel.getDisplayName() : Util.VALUE_DEQUEUE_NO_LABEL);
+        json.put(Util.LISTENER_TYPE, "queue");
     }
 
     @Override
