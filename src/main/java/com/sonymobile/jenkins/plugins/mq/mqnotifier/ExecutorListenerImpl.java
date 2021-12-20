@@ -104,7 +104,7 @@ public class ExecutorListenerImpl implements ExecutorListener {
         LOGGER.debug("taskCompletedWithProblems");
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
-        json.put("state", "TASK_COMPLETED");
+        json.put(Util.KEY_STATE, "TASK_COMPLETED");
         json.put(Util.TASK_DURATION, durationMS);
         json.put(Util.PROBLEMS, problems.getMessage());
         MQConnection.getInstance().publish(json);
