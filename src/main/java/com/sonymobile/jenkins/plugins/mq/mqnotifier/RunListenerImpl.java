@@ -69,6 +69,7 @@ public class RunListenerImpl extends RunListener<Run> {
         json.put(Util.KEY_BUILD_NR, r.getNumber());
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
         json.put(Util.KEY_STATE, state);
+        json.put(Util.LISTENER_TYPE, "run");
         return json;
     }
 

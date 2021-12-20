@@ -79,6 +79,34 @@ public final class Util {
     public static final String VALUE_DELETED = "DELETED";
     /**Content Type. */
     public static final String CONTENT_TYPE = "application/json";
+    /**Executor Type. */
+    public static final String EXECUTOR_TYPE = "executor_type";
+    /**Executor Name. */
+    public static final String EXECUTOR_NAME = "executor_name";
+    /**Executor Workspace. */
+    public static final String EXECUTOR_WORKSPACE = "executor_workspace";
+    /**Elapsed Time. */
+    public static final String ELAPSED_TIME = "elapsed_time";
+    /**Idle Start. */
+    public static final String IDLE_START = "idle_start";
+    /**Executor Owner. */
+    public static final String EXECUTOR_OWNER = "executor_owner";
+    /**Task Name. */
+    public static final String TASK_NAME = "task_name";
+    /**Task Url. */
+    public static final String TASK_URL = "task_url";
+    /**Task Is Concurrent. */
+    public static final String TASK_IS_CONCURRENT = "task_is_concurrent";
+    /**Task Owner Name. */
+    public static final String TASK_OWNER_NAME = "task_owner_name";
+    /**Task Owner Url. */
+    public static final String TASK_OWNER_URL = "task_owner_url";
+    /**Listener Type (for easier filtering). */
+    public static final String LISTENER_TYPE = "listener_type";
+    /**Task Duration. */
+    public static final String TASK_DURATION = "task_duration";
+    /**Problems. */
+    public static final String PROBLEMS = "problems";
 
     /**
      * Utility classes should not have a public or default constructor.
