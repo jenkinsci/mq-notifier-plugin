@@ -23,7 +23,7 @@
 
   <name>MQ Notifier</name>
   <description>Publishes messages on an MQ server</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/MQ+Notifier+Plugin</url>
+  <url>https://github.com/jenkinsci/mq-notifier-plugin</url>
   <licenses>
     <license>
       <name>MIT License</name>
