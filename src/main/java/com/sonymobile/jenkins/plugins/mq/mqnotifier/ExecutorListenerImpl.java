@@ -60,10 +60,10 @@ public class ExecutorListenerImpl implements ExecutorListener {
         json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,
                 t.getAssignedLabel() != null ? t.getAssignedLabel().getDisplayName() : Util.VALUE_DEQUEUE_NO_LABEL);
 
-        json.put(Util.TASK_URL, t.getUrl());
+        json.put(Util.TASK_URL, Util.getTaskUrl(t));
         json.put(Util.TASK_IS_CONCURRENT, t.isConcurrentBuild());
         json.put(Util.TASK_OWNER_NAME, t.getOwnerTask().getDisplayName());
-        json.put(Util.TASK_OWNER_URL, t.getOwnerTask().getUrl());
+        json.put(Util.TASK_OWNER_URL, Util.getTaskUrl(t.getOwnerTask()));
 
         json.put(Util.KEY_PROJECT_NAME, Util.getFullName(t));
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
@@ -104,7 +104,7 @@ public class ExecutorListenerImpl implements ExecutorListener {
         LOGGER.debug("taskCompletedWithProblems");
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
-        json.put("state", "TASK_COMPLETED_WITH_PROBLEMS");
+        json.put(Util.KEY_STATE, "TASK_COMPLETED");
         json.put(Util.TASK_DURATION, durationMS);
         json.put(Util.PROBLEMS, problems.getMessage());
         MQConnection.getInstance().publish(json);

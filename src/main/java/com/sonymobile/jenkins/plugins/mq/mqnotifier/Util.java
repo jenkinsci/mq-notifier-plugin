@@ -122,11 +122,22 @@ public final class Util {
      *
      */
     public static String getJobUrl(Queue.Item item) {
+        return getTaskUrl(item.task);
+    }
+
+    /**
+     * Get the job url for use with the REST api.
+     *
+     * @param task The queue task.
+     * @return The url.
+     *
+     */
+    public static String getTaskUrl(Queue.Task task) {
         Jenkins jenkins = Jenkins.getInstance();
         if (jenkins != null && jenkins.getRootUrl() != null) {
-            return Functions.joinPath(jenkins.getRootUrl(), item.task.getUrl());
+            return Functions.joinPath(jenkins.getRootUrl(), task.getUrl());
         } else {
-            return item.task.getUrl();
+            return task.getUrl();
         }
     }
 
