@@ -47,6 +47,7 @@ public class QueueListenerImpl extends QueueListener {
         json.put(Util.KEY_URL, Util.getJobUrl(i));
         json.put(Util.KEY_PROJECT_NAME, Util.getFullName(i.task));
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
+        json.put(Util.KEY_CANONICAL_NAME, Util.getCanonicalName());
 
         Label assignedLabel = i.getAssignedLabel();
         json.put(Util.KEY_DEQUEUE_ALLOCATED_LABEL,

@@ -67,7 +67,7 @@ public class ExecutorListenerImpl implements ExecutorListener {
 
         json.put(Util.KEY_PROJECT_NAME, Util.getFullName(t));
         json.put(Util.KEY_MASTER_FQDN, Util.getHostName());
-
+        json.put(Util.KEY_CANONICAL_NAME, Util.getCanonicalName());
         json.put(Util.LISTENER_TYPE, "executor");
     }
 
