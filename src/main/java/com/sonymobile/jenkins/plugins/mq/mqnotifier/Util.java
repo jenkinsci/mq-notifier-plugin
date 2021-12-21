@@ -186,7 +186,6 @@ public final class Util {
     public static final String PROBLEMS = "problems";
 
     /**
-     * https://github.com/backstage/backstage/pull/8496
      * Utility classes should not have a public or default constructor.
      */
     private Util() {
