@@ -27,85 +27,162 @@ import hudson.Functions;
 import hudson.model.AbstractItem;
 import hudson.model.Queue;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
-
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
+import jenkins.model.Jenkins;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Constants and helper functions.
+ *
  * @author Tomas Westling &lt;tomas.westling@sonymobile.com&gt;
  */
 public final class Util {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
     private static String hostName = null;
 
-    /**Url Key. */
+    /**
+     * Url Key.
+     */
     public static final String KEY_URL = "url";
-    /**Name Key. */
+    /**
+     * Name Key.
+     */
     public static final String KEY_PROJECT_NAME = "build_job_name";
-    /**BuildNr Key. */
+    /**
+     * BuildNr Key.
+     */
     public static final String KEY_BUILD_NR = "build_number";
-    /**Build Duration Key. */
+    /**
+     * Build Duration Key.
+     */
     public static final String KEY_BUILD_DURATION = "build_duration";
-    /**Master FQDN Key. */
+    /**
+     * Master FQDN Key.
+     */
     public static final String KEY_MASTER_FQDN = "jenkins_master_fqdn";
-    /**State Key. */
+    /**
+     * Canonical Name Key.
+     */
+    public static final String KEY_CANONICAL_NAME = "jenkins_canonical_name";
+    /**
+     * State Key.
+     */
     public static final String KEY_STATE = "state";
-    /**Dequeue Reason Key. */
+    /**
+     * Dequeue Reason Key.
+     */
     public static final String KEY_DEQUEUE_REASON = "dequeue_reason";
-    /**Dequeue Time Spent in Queue in ms. */
+    /**
+     * Dequeue Time Spent in Queue in ms.
+     */
     public static final String KEY_DEQUEUE_TIME_SPENT = "time_spent_in_queue";
-    /**Dequeue Allocated Label. */
+    /**
+     * Dequeue Allocated Label.
+     */
     public static final String KEY_DEQUEUE_ALLOCATED_LABEL = "allocated_label";
-    /**Status Key. */
+    /**
+     * Status Key.
+     */
     public static final String KEY_STATUS = "status";
-    /**Dequeue No Label. */
+    /**
+     * Dequeue No Label.
+     */
     public static final String VALUE_DEQUEUE_NO_LABEL = "NO_LABEL";
-    /**Unknown host Value. */
+    /**
+     * Unknown host Value.
+     */
     public static final String VALUE_UNRESOLVED_HOST = "unknown_host";
-    /**Queued Value. */
+    /**
+     * Queued Value.
+     */
     public static final String VALUE_ADDED_TO_QUEUE = "QUEUED";
-    /**Dequeued Value. */
+    /**
+     * Dequeued Value.
+     */
     public static final String VALUE_REMOVED_FROM_QUEUE = "DEQUEUED";
-    /**Cancelled Value. */
+    /**
+     * Cancelled Value.
+     */
     public static final String VALUE_CANCELLED = "CANCELLED";
-    /**Building Value. */
+    /**
+     * Building Value.
+     */
     public static final String VALUE_BUILDING = "BUILDING";
-    /**Started Value. */
+    /**
+     * Started Value.
+     */
     public static final String VALUE_STARTED = "STARTED";
-    /**Completed Value. */
+    /**
+     * Completed Value.
+     */
     public static final String VALUE_COMPLETED = "COMPLETED";
-    /**Deleted Value. */
+    /**
+     * Deleted Value.
+     */
     public static final String VALUE_DELETED = "DELETED";
-    /**Content Type. */
+    /**
+     * Content Type.
+     */
     public static final String CONTENT_TYPE = "application/json";
-    /**Executor Type. */
+    /**
+     * Executor Type.
+     */
     public static final String EXECUTOR_TYPE = "executor_type";
-    /**Executor Name. */
+    /**
+     * Executor Name.
+     */
     public static final String EXECUTOR_NAME = "executor_name";
-    /**Executor Workspace. */
+    /**
+     * Executor Workspace.
+     */
     public static final String EXECUTOR_WORKSPACE = "executor_workspace";
-    /**Elapsed Time. */
+    /**
+     * Elapsed Time.
+     */
     public static final String ELAPSED_TIME = "elapsed_time";
-    /**Idle Start. */
+    /**
+     * Idle Start.
+     */
     public static final String IDLE_START = "idle_start";
-    /**Executor Owner. */
+    /**
+     * Executor Owner.
+     */
     public static final String EXECUTOR_OWNER = "executor_owner";
-    /**Task Name. */
+    /**
+     * Task Name.
+     */
     public static final String TASK_NAME = "task_name";
-    /**Task Url. */
+    /**
+     * Task Url.
+     */
     public static final String TASK_URL = "task_url";
-    /**Task Is Concurrent. */
+    /**
+     * Task Is Concurrent.
+     */
     public static final String TASK_IS_CONCURRENT = "task_is_concurrent";
-    /**Task Owner Name. */
+    /**
+     * Task Owner Name.
+     */
     public static final String TASK_OWNER_NAME = "task_owner_name";
-    /**Task Owner Url. */
+    /**
+     * Task Owner Url.
+     */
     public static final String TASK_OWNER_URL = "task_owner_url";
-    /**Listener Type (for easier filtering). */
+    /**
+     * Listener Type (for easier filtering).
+     */
     public static final String LISTENER_TYPE = "listener_type";
-    /**Task Duration. */
+    /**
+     * Task Duration.
+     */
     public static final String TASK_DURATION = "task_duration";
-    /**Problems. */
+    /**
+     * Problems.
+     */
     public static final String PROBLEMS = "problems";
 
     /**
@@ -119,7 +196,6 @@ public final class Util {
      *
      * @param item The queue item.
      * @return The url.
-     *
      */
     public static String getJobUrl(Queue.Item item) {
         return getTaskUrl(item.task);
@@ -130,7 +206,6 @@ public final class Util {
      *
      * @param task The queue task.
      * @return The url.
-     *
      */
     public static String getTaskUrl(Queue.Task task) {
         Jenkins jenkins = Jenkins.getInstance();
@@ -146,7 +221,6 @@ public final class Util {
      *
      * @param r The started build.
      * @return The url.
-     *
      */
     public static String getJobUrl(Run r) {
         Jenkins jenkins = Jenkins.getInstance();
@@ -186,4 +260,21 @@ public final class Util {
             return t.getName();
         }
     }
+
+    /**
+     * Returns the canonical host name. This name is derived from the configured
+     * Jenkins URL in "Manage Jenkins".
+     *
+     * @return the canonical host name
+     */
+    public static String getCanonicalName() {
+        try {
+            URL url = new URL(Jenkins.get().getRootUrl());
+            return url.getHost();
+        } catch (MalformedURLException ex) {
+            LOGGER.warn("Could not parse the Jenkins Root Url: ", ex);
+            return "NO_CANONICAL";
+        }
+    }
+
 }
