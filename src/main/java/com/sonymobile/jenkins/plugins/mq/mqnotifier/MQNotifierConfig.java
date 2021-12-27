@@ -51,7 +51,7 @@ import java.net.URISyntaxException;
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
 @Extension
-@Symbol("mqNotifier")
+@Symbol("mq-notifier")
 public final class MQNotifierConfig extends GlobalConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(MQNotifierConfig.class);
     private final String[] schemes = {"amqp", "amqps"};

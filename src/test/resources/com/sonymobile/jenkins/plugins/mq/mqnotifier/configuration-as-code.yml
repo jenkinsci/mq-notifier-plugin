@@ -1,5 +1,5 @@
 unclassified:
-  mqNotifier:
+  mq-notifier:
     userName: "johndoe"
     routingKey: "jenkins"
     serverUri: "mq.test.com"

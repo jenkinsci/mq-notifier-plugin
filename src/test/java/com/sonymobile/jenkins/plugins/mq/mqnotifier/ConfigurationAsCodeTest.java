@@ -46,7 +46,7 @@ public class ConfigurationAsCodeTest {
         config.setEnableNotifier(false);
         config.setRoutingKey("jenkins");
         ConfigurationContext context = new ConfigurationContext(ConfiguratorRegistry.get());
-        CNode mqNotifierAttr = getUnclassifiedRoot(context).get("mqNotifier");
+        CNode mqNotifierAttr = getUnclassifiedRoot(context).get("mq-notifier");
         String exported = toYamlString(mqNotifierAttr).replaceFirst("password: \".*\"", "");
         String expected = toStringFromYamlFile(this, "expected-config.yml");
         assertEquals(expected, exported);
