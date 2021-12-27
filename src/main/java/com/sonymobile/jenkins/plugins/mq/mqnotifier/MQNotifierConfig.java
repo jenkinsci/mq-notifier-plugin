@@ -26,6 +26,7 @@ package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.PossibleAuthenticationFailureException;
 import hudson.Extension;
+import hudson.XmlFile;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
@@ -42,8 +43,9 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
+import java.io.File;
 import java.net.URISyntaxException;
+import javax.servlet.ServletException;
 
 /**
  * Adds the MQ notifier plugin configuration to the system config page.
@@ -58,6 +60,9 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     private static final String SERVER_URI = "serverUri";
     private static final String USERNAME = "userName";
     private static final String PASSWORD = "userPassword";
+
+    /* The name of the configuration file. */
+    private static final String CONFIG_XML = "mq-notifier.xml";
 
     /* The status whether the plugin is enabled */
     private boolean enableNotifier;
@@ -113,6 +118,7 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
         this.enableVerboseLogging = enableVerboseLogging;
+        super.load();
     }
 
     /**
@@ -122,6 +128,7 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.enableNotifier = false;        // default value
         this.persistentDelivery = true;     // default value
         this.enableVerboseLogging = true;   // default value
+        super.load();
     }
 
     @Override
@@ -131,6 +138,17 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
         return true;
     }
+
+    /**
+     * For backwards-compatibility with the previous Plugin derived version.
+     *
+     * @return XmlFile representing the ConfigFile.
+     */
+    @Override
+    protected XmlFile getConfigFile() {
+        return new XmlFile(new File(Jenkins.get().getRootDir(), CONFIG_XML));
+    }
+
 
     /**
      * Gets whether this plugin is enabled or not.

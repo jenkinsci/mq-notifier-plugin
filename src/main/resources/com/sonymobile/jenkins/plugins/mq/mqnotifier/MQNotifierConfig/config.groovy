@@ -29,37 +29,37 @@ def l = "/plugin/mq-notifier/"
 f.section(title: "MQ Notifier") {
 
     f.entry(title: "Enable Notifier", help: l+"help-enable-notifier.html") {
-        f.checkbox(field: "enableNotifier", checked: my.enableNotifier)
+        f.checkbox(field: "enableNotifier", checked: instance.enableNotifier)
     }
     f.entry(title: "MQ URI", field: "serverUri", help: l+"help-amqp-uri.html") {
-        f.textbox("value":my.serverUri)
+        f.textbox("value":instance.serverUri)
     }
     f.entry(title: "User name", field: "userName", help: l+"help-user-name.html") {
-        f.textbox("value":my.userName)
+        f.textbox("value":instance.userName)
     }
     f.entry(title: "Password", field: "userPassword", help: l+"help-user-password.html") {
-        f.password("value":my.userPassword)
+        f.password("value":instance.userPassword)
     }
-    descriptor = my.descriptor
+    descriptor = instance.descriptor
     f.validateButton(title: "Test Connection", progress: "Trying to connect...", method: "testConnection",
             with: "serverUri,userName,userPassword")
 
     f.entry(title: "Exchange Name", field: "exchangeName", help: l+"help-exchange-name.html") {
-        f.textbox("value":my.exchangeName)
+        f.textbox("value":instance.exchangeName)
     }
     f.entry(title: "Virtual host", field: "virtualHost", help: l+"help-virtual-host.html") {
-        f.textbox("value":my.virtualHost)
+        f.textbox("value":instance.virtualHost)
     }
     f.entry(title: "Routing Key", field: "routingKey", help: l+"help-routing-key.html") {
-        f.textbox("value":my.routingKey)
+        f.textbox("value":instance.routingKey)
     }
     f.entry(title: "Application Id", field: "appId", help: l+"help-application-id.html") {
-        f.textbox("value":my.appId)
+        f.textbox("value":instance.appId)
     }
     f.entry(title: "Persistent Delivery mode", help: l+"help-persistent-delivery.html") {
-        f.checkbox(field: "persistentDelivery", checked: my.persistentDelivery)
+        f.checkbox(field: "persistentDelivery", checked: instance.persistentDelivery)
     }
     f.entry(title: "Enable verbose logging", help: l+"help-enable-verbose-logging.html") {
-        f.checkbox(field: "enableVerboseLogging", checked: my.enableVerboseLogging)
+        f.checkbox(field: "enableVerboseLogging", checked: instance.enableVerboseLogging)
     }
 }
