@@ -26,15 +26,16 @@ package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.PossibleAuthenticationFailureException;
 import hudson.Extension;
-import hudson.Plugin;
-import hudson.model.Describable;
+import hudson.XmlFile;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -42,9 +43,9 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
+import java.io.File;
 import java.net.URISyntaxException;
+import javax.servlet.ServletException;
 
 /**
  * Adds the MQ notifier plugin configuration to the system config page.
@@ -52,12 +53,16 @@ import java.net.URISyntaxException;
  * @author Örjan Percy &lt;orjan.percy@sonymobile.com&gt;
  */
 @Extension
-public final class MQNotifierConfig extends Plugin implements Describable<MQNotifierConfig> {
+@Symbol("mq-notifier")
+public final class MQNotifierConfig extends GlobalConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(MQNotifierConfig.class);
     private final String[] schemes = {"amqp", "amqps"};
     private static final String SERVER_URI = "serverUri";
     private static final String USERNAME = "userName";
     private static final String PASSWORD = "userPassword";
+
+    /* The name of the configuration file. */
+    private static final String CONFIG_XML = "mq-notifier.xml";
 
     /* The status whether the plugin is enabled */
     private boolean enableNotifier;
@@ -113,14 +118,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
         this.enableVerboseLogging = enableVerboseLogging;
-    }
-
-    @Override
-    public void start() throws Exception {
-        super.start();
-        LOGGER.info("Starting MQNotifier Plugin");
-        load();
-        MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
+        super.load();
     }
 
     /**
@@ -130,22 +128,34 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
         this.enableNotifier = false;        // default value
         this.persistentDelivery = true;     // default value
         this.enableVerboseLogging = true;   // default value
+        super.load();
     }
 
     @Override
-    public void configure(StaplerRequest req, JSONObject formData) throws IOException, ServletException,
-            Descriptor.FormException {
+    public boolean configure(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
         req.bindJSON(this, formData);
         save();
         MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
+        return true;
     }
+
+    /**
+     * For backwards-compatibility with the previous Plugin derived version.
+     *
+     * @return XmlFile representing the ConfigFile.
+     */
+    @Override
+    protected XmlFile getConfigFile() {
+        return new XmlFile(new File(Jenkins.get().getRootDir(), CONFIG_XML));
+    }
+
 
     /**
      * Gets whether this plugin is enabled or not.
      *
      * @return true if this plugin is enabled.
      */
-    public boolean isNotifierEnabled() {
+    public boolean getEnableNotifier() {
         return this.enableNotifier;
     }
 
@@ -163,7 +173,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
      *
      * @return true if verbose logging is enabled.
      */
-    public boolean isVerboseLoggingEnabled() {
+    public boolean getEnableVerboseLogging() {
         return this.enableVerboseLogging;
     }
 
@@ -239,13 +249,7 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
      * @return the instance of this extension.
      */
     public static MQNotifierConfig getInstance() {
-        Jenkins jenkins = Jenkins.getInstance();
-        if (jenkins != null) {
-            return jenkins.getPlugin(MQNotifierConfig.class);
-        } else {
-            LOGGER.error("Error, Jenkins could not be found, so no plugin!");
-            return null;
-        }
+        return MQNotifierConfig.all().get(MQNotifierConfig.class);
     }
 
     /**
@@ -338,66 +342,50 @@ public final class MQNotifierConfig extends Plugin implements Describable<MQNoti
         this.appId = appId;
     }
 
-
-    /**
-     * Returns the descriptor instance.
-     *
-     * @return descriptor instance.
-     */
     @Override
-    public Descriptor<MQNotifierConfig> getDescriptor() {
-        return Jenkins.getInstance().getDescriptorOrDie(getClass());
+    public String getDisplayName() {
+        return "MQ Notifier Plugin";
     }
 
     /**
-     * Implementation of the Descriptor interface.
+     * Tests connection to the server URI.
+     *
+     * @param uri the URI.
+     * @param name the user name.
+     * @param pw the user password.
+     * @return FormValidation object that indicates ok or error.
+     * @throws javax.servlet.ServletException Exception for servlet.
      */
-    @Extension
-    public static final class DescriptorImpl extends Descriptor<MQNotifierConfig> {
-        @Override
-        public String getDisplayName() {
-            return "MQ Notifier Plugin";
-        }
-
-        /**
-         * Tests connection to the server URI.
-         *
-         * @param uri the URI.
-         * @param name the user name.
-         * @param pw the user password.
-         * @return FormValidation object that indicates ok or error.
-         * @throws javax.servlet.ServletException Exception for servlet.
-         */
-        @RequirePOST
-        public FormValidation doTestConnection(@QueryParameter(SERVER_URI) final String uri,
-                                               @QueryParameter(USERNAME) final String name,
-                                               @QueryParameter(PASSWORD) final Secret pw) throws ServletException {
-            Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-            UrlValidator urlValidator = new UrlValidator(getInstance().schemes, UrlValidator.ALLOW_LOCAL_URLS);
-            FormValidation result = FormValidation.ok();
-            if (urlValidator.isValid(uri)) {
-                try {
-                    ConnectionFactory conn = new ConnectionFactory();
-                    conn.setUri(uri);
-                    if (StringUtils.isNotEmpty(name)) {
-                        conn.setUsername(name);
-                        if (StringUtils.isNotEmpty(Secret.toString(pw))) {
-                            conn.setPassword(Secret.toString(pw));
-                        }
+    @RequirePOST
+    public FormValidation doTestConnection(@QueryParameter(SERVER_URI) final String uri,
+                                           @QueryParameter(USERNAME) final String name,
+                                           @QueryParameter(PASSWORD) final Secret pw) throws ServletException {
+        Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
+        UrlValidator urlValidator = new UrlValidator(getInstance().schemes, UrlValidator.ALLOW_LOCAL_URLS);
+        FormValidation result = FormValidation.ok();
+        if (urlValidator.isValid(uri)) {
+            try {
+                ConnectionFactory conn = new ConnectionFactory();
+                conn.setUri(uri);
+                if (StringUtils.isNotEmpty(name)) {
+                    conn.setUsername(name);
+                    if (StringUtils.isNotEmpty(Secret.toString(pw))) {
+                        conn.setPassword(Secret.toString(pw));
                     }
-                    conn.newConnection();
-                } catch (URISyntaxException e) {
-                    result = FormValidation.error("Invalid Uri");
-                } catch (PossibleAuthenticationFailureException e) {
-                    result = FormValidation.error("Authentication Failure");
-                } catch (Exception e) {
-                    result = FormValidation.error(e.getMessage());
                 }
-            } else {
+                conn.newConnection();
+            } catch (URISyntaxException e) {
                 result = FormValidation.error("Invalid Uri");
+            } catch (PossibleAuthenticationFailureException e) {
+                result = FormValidation.error("Authentication Failure");
+            } catch (Exception e) {
+                result = FormValidation.error(e.getMessage());
             }
-            return result;
+        } else {
+            result = FormValidation.error("Invalid Uri");
         }
+        return result;
+
     }
 
 }

@@ -50,7 +50,7 @@ public class RunListenerImpl extends RunListener<Run> {
     private  MQNotifierConfig config = MQNotifierConfig.getInstance();
 
     private void logMessage(JSONObject message, TaskListener listener) {
-        if (this.config.isVerboseLoggingEnabled()) {
+        if (this.config.getEnableVerboseLogging()) {
             listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + message.toString(2));
         }
     }

@@ -1,0 +1,8 @@
+unclassified:
+  mq-notifier:
+    userName: "johndoe"
+    routingKey: "jenkins"
+    serverUri: "mq.test.com"
+    enableNotifier: false
+    enableVerboseLogging: true
+    persistentDelivery: false

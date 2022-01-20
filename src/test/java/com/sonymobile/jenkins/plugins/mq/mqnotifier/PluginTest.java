@@ -100,7 +100,7 @@ public class PluginTest {
         config.setEnableNotifier(false);
         config.setEnableVerboseLogging(false);
 
-        if (config != null && config.isNotifierEnabled()) {
+        if (config != null && config.getEnableNotifier()) {
             conn.initialize(
                     config.getUserName(),
                     config.getUserPassword(),
@@ -128,7 +128,7 @@ public class PluginTest {
         config.setVirtualHost(null);
         config.setEnableNotifier(true);
 
-        if (config != null && config.isNotifierEnabled()) {
+        if (config != null && config.getEnableNotifier()) {
             conn.initialize(
                     config.getUserName(),
                     config.getUserPassword(),
