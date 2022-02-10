@@ -239,9 +239,14 @@ public final class Util {
     public static String getHostName() {
         if (hostName == null) {
             try {
-                hostName = InetAddress.getLocalHost().getHostName();
-            } catch (UnknownHostException e) {
-                return VALUE_UNRESOLVED_HOST;
+                hostName = new URL(Jenkins.get().getRootUrl()).getHost();
+            } catch (MalformedURLException e) {
+                LOGGER.info("Failed to derive host name from Jenkins root URL!", e);
+                try {
+                    hostName = InetAddress.getLocalHost().getHostName();
+                } catch (UnknownHostException e2) {
+                    return VALUE_UNRESOLVED_HOST;
+                }
             }
         }
         return hostName;
