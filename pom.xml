@@ -11,7 +11,7 @@
 
   <groupId>com.sonymobile.jenkins.plugins.mq</groupId>
   <artifactId>mq-notifier</artifactId>
-  <version>1.3.1-SNAPSHOT</version>
+  <version>1.3.1</version>
   <packaging>hpi</packaging>
 
   <properties>
@@ -68,7 +68,7 @@
     <developerConnection>scm:git:https://github.com/jenkinsci/mq-notifier-plugin.git
     </developerConnection>
     <url>https://github.com/jenkinsci/mq-notifier-plugin</url>
-    <tag>HEAD</tag>
+    <tag>mq-notifier-1.3.1</tag>
   </scm>
 
   <repositories>
