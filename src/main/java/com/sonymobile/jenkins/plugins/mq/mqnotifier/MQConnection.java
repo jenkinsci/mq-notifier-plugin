@@ -61,6 +61,7 @@ public final class MQConnection implements ShutdownListener {
     private static final int MESSAGE_QUEUE_SIZE = 100000;
     private static final int SENDMESSAGE_TIMEOUT = 100;
 
+    private volatile boolean initialized = false;
     private String userName;
     private Secret userPassword;
     private String serverUri;
@@ -203,14 +204,7 @@ public final class MQConnection implements ShutdownListener {
      * @param body the message body
      */
     public void addMessageToQueue(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body) {
-        // If addMessageToQueue is called from multiple threads, make sure only one thread is started.
-        synchronized (this) {
-            if (messageQueueThread == null || !messageQueueThread.isAlive()) {
-                messageQueueThread = new Thread(() -> sendMessages());
-                messageQueueThread.start();
-                LOGGER.info("messageQueueThread recreated since it was null or not alive.");
-            }
-        }
+        startMessageQueueThread();
         MessageData messageData = new MessageData(exchange, routingKey, props, body);
         if (!messageQueue.offer(messageData)) {
             LOGGER.error("addMessageToQueue() failed, internal RabbitMQ queue is full!");
@@ -274,6 +268,23 @@ public final class MQConnection implements ShutdownListener {
         }
     }
 
+    /**
+     * Start or restart the message queue thread as necessary. Requires that
+     * the MQConnection has been initialized with the needed configuration.
+     *
+     * @return true if the message queue thread was started, otherwise false
+     */
+    private boolean startMessageQueueThread() {
+        synchronized (this) {
+            if (!initialized || (messageQueueThread != null && messageQueueThread.isAlive())) {
+                return false;
+            }
+            messageQueueThread = new Thread(() -> sendMessages());
+            messageQueueThread.start();
+            LOGGER.info("messageQueueThread recreated since it was null or not alive.");
+            return true;
+        }
+    }
 
     /**
      * Validate the exchange.
@@ -400,6 +411,8 @@ public final class MQConnection implements ShutdownListener {
         serverUri = uri;
         virtualHost = vh;
         connection = null;
+        initialized = true;
+        startMessageQueueThread();
     }
 
     /**
