@@ -107,7 +107,7 @@ public class MQMessageStep extends Step {
             if (config.getEnableVerboseLogging()) {
                 listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + json.toString(2));
             }
-            MQConnection.getInstance().publish(json);
+            MQConnection.getInstance().publish(json, "publishMQMessage");
             return null;
         }
     }

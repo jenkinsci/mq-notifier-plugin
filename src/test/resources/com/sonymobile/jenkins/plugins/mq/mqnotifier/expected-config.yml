@@ -3,5 +3,6 @@ enableVerboseLogging: true
 exchangeName: "test"
 persistentDelivery: false
 routingKey: "jenkins"
+routingKeyProvider: "MANUAL"
 serverUri: "mq.test.com"
 userName: "johndoe"

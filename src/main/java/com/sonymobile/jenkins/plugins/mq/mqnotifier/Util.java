@@ -124,6 +124,22 @@ public final class Util {
      * Deleted Value.
      */
     public static final String VALUE_DELETED = "DELETED";
+
+    /**
+     * Task accepted Value.
+     */
+    public static final String VALUE_TASK_ACCEPTED = "TASK_ACCEPTED";
+
+    /**
+     * Task started Value.
+     */
+    public static final String VALUE_TASK_STARTED = "TASK_STARTED";
+
+    /**
+     * Task completed Value.
+     */
+    public static final String VALUE_TASK_COMPLETED = "TASK_COMPLETED";
+
     /**
      * Content Type.
      */

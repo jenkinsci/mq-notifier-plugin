@@ -83,6 +83,12 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     /* The virtual host which the connection intends to operate within. */
     private String virtualHost;
 
+    /* The means of which the routing key is provided, either "AUTO" or "MANUAL". Auto means that each message
+     * will get a routing key based on the method that provided the message, the details can be found here:
+     *
+     * Manual is the legacy way, where you set a specific routing key that each message gets. */
+    private String routingKeyProvider;
+
     /* Messages will be sent with a routing key which allows messages to be delivered to queues that are bound with a
      * matching binding key. The routing key must be a list of words, delimited by dots.
      */
@@ -108,14 +114,15 @@ public final class MQNotifierConfig extends GlobalConfiguration {
      */
     @DataBoundConstructor
     public MQNotifierConfig(boolean enableNotifier, String serverUri, String userName, Secret userPassword,
-                            String exchangeName, String virtualHost, String routingKey, boolean persistentDelivery,
-                            String appId, boolean enableVerboseLogging) {
+                            String exchangeName, String virtualHost, String routingKeyProvider, String routingKey,
+                            boolean persistentDelivery, String appId, boolean enableVerboseLogging) {
         this.enableNotifier = enableNotifier;
         this.serverUri = serverUri;
         this.userName = userName;
         this.userPassword = userPassword;
         this.exchangeName = exchangeName;
         this.virtualHost = virtualHost;
+        this.routingKeyProvider = routingKeyProvider;
         this.routingKey = routingKey;
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
@@ -139,6 +146,20 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         save();
         MQConnection.getInstance().initialize(userName, userPassword, serverUri, virtualHost);
         return true;
+    }
+
+    /** Translates old configs to new.
+     * If the routing key has been set, turn on manual routing keys.
+     * If it hasn't, default to automatically setting routing keys.*/
+    protected Object readResolve() {
+        if (StringUtils.isBlank(getRoutingKeyProvider())) {
+            if (StringUtils.isNotBlank(getRoutingKey())) {
+                setRoutingKeyProvider("MANUAL");
+            } else {
+                setRoutingKeyProvider("AUTO");
+            }
+        }
+        return this;
     }
 
     /**
@@ -291,9 +312,26 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     }
 
     /**
-     * Gets the routing key.
+     * Sets the routing key.
      *
-     * @return the routing key.
+     * @param routingKeyProvider the routing key.
+     */
+    public void setRoutingKeyProvider(String routingKeyProvider) {
+        this.routingKeyProvider = routingKeyProvider;
+    }
+    /**
+     * Gets the routing key provider.
+     *
+     * @return the routing key provider.
+     */
+
+    public String getRoutingKeyProvider() {
+        return this.routingKeyProvider;
+    }
+    /**
+     * Gets the routing key provider, either "auto" or "manual".
+     *
+     * @return the routing key provider.
      */
     public String getRoutingKey() {
         return this.routingKey;

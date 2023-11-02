@@ -2,6 +2,7 @@ unclassified:
   mq-notifier:
     userName: "johndoe"
     routingKey: "jenkins"
+    routingKeyProvider: "MANUAL"
     serverUri: "mq.test.com"
     enableNotifier: false
     enableVerboseLogging: true

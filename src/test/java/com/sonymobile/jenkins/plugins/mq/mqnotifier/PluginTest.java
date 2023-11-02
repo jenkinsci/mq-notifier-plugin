@@ -61,6 +61,7 @@ public class PluginTest {
     private static final String ROUTING = "routingkey";
     private static final String URI = "amqp://localhost";
     private static final String MESSAGE = "secret message";
+    private static final String MANUAL_PROVIDER_STRING = "MANUAL";
 
     /**
      * Called before class is setup.
@@ -125,6 +126,7 @@ public class PluginTest {
         config.setExchangeName(EXCHANGE);
         config.setServerUri(URI);
         config.setRoutingKey(ROUTING);
+        config.setRoutingKeyProvider(MANUAL_PROVIDER_STRING);
         config.setVirtualHost(null);
         config.setEnableNotifier(true);
 
