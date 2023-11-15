@@ -98,6 +98,11 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     /* Application id that can be read by the consumer (optional). */
     private String appId;
 
+    /** String representing the manual routing provider. */
+    public static final String MANUAL_ROUTING_PROVIDER = "MANUAL";
+    /** String representing the automatic routing provider. */
+    public static final String AUTO_ROUTING_PROVIDER = "AUTO";
+
     /**
      * Creates an instance with specified parameters.
      *
@@ -154,9 +159,9 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     protected Object readResolve() {
         if (StringUtils.isBlank(getRoutingKeyProvider())) {
             if (StringUtils.isNotBlank(getRoutingKey())) {
-                setRoutingKeyProvider("MANUAL");
+                setRoutingKeyProvider(MANUAL_ROUTING_PROVIDER);
             } else {
-                setRoutingKeyProvider("AUTO");
+                setRoutingKeyProvider(AUTO_ROUTING_PROVIDER);
             }
         }
         return this;
@@ -312,26 +317,27 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     }
 
     /**
-     * Sets the routing key.
+     * Sets the routing key provider ("AUTO" or "MANUAL").
      *
-     * @param routingKeyProvider the routing key.
+     * @param routingKeyProvider the routing key provider.
      */
     public void setRoutingKeyProvider(String routingKeyProvider) {
         this.routingKeyProvider = routingKeyProvider;
     }
+
     /**
-     * Gets the routing key provider.
+     * Gets the routing key provider, either "AUTO" or "MANUAL".
      *
      * @return the routing key provider.
      */
-
     public String getRoutingKeyProvider() {
         return this.routingKeyProvider;
     }
+
     /**
-     * Gets the routing key provider, either "auto" or "manual".
+     * Gets the routing key.
      *
-     * @return the routing key provider.
+     * @return the routing key.
      */
     public String getRoutingKey() {
         return this.routingKey;

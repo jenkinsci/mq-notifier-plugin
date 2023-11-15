@@ -240,7 +240,7 @@ public final class MQConnection implements ShutdownListener {
             bob.contentType(Util.CONTENT_TYPE);
             bob.timestamp(Calendar.getInstance().getTime());
 
-            if ("MANUAL".equals(config.getRoutingKeyProvider())) {
+            if (MQNotifierConfig.MANUAL_ROUTING_PROVIDER.equals(config.getRoutingKeyProvider())) {
                 routingKey = config.getRoutingKey();
             }
             addMessageToQueue(config.getExchangeName(), routingKey,

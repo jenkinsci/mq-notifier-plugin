@@ -47,6 +47,7 @@ public final class Mocks {
     public static final List<String> MESSAGES = new CopyOnWriteArrayList<String>();
     public static final List<String> STARTED = new CopyOnWriteArrayList<String>();
     public static final List<String> COMPLETED = new CopyOnWriteArrayList<String>();
+    public static final List<String> ROUTING_KEYS = new CopyOnWriteArrayList<String>();
 
     // private constructor to avoid unnecessary instantiation of the class
     private Mocks() { }
@@ -60,6 +61,7 @@ public final class Mocks {
         public void addMessageToQueue(String exchangeName, String routingKey, AMQP.BasicProperties props, byte[] body) {
             String str = new String(body);
             MESSAGES.add(str);
+            ROUTING_KEYS.add(routingKey);
         }
     }
 
