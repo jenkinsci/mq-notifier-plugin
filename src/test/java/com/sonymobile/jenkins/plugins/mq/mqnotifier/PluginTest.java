@@ -30,7 +30,6 @@ import hudson.model.FreeStyleProject;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.TextParameterDefinition;
 import hudson.slaves.DumbSlave;
-import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Before;
@@ -41,9 +40,11 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotEquals;
+
 
 //CS IGNORE Check FOR NEXT 100 LINES. REASON: TestData
 
@@ -61,6 +62,7 @@ public class PluginTest {
     private static final String ROUTING = "routingkey";
     private static final String URI = "amqp://localhost";
     private static final String MESSAGE = "secret message";
+    private static final String MANUAL_PROVIDER_STRING = "MANUAL";
 
     /**
      * Called before class is setup.
@@ -70,7 +72,6 @@ public class PluginTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         new Mocks.RabbitMQConnectionMock();
-        new Mocks.RunListenerImplMock();
     }
 
     /**
@@ -83,6 +84,7 @@ public class PluginTest {
         Mocks.MESSAGES.clear();
         Mocks.COMPLETED.clear();
         Mocks.STARTED.clear();
+        Mocks.ROUTING_KEYS.clear();
     }
 
     /**
@@ -125,6 +127,7 @@ public class PluginTest {
         config.setExchangeName(EXCHANGE);
         config.setServerUri(URI);
         config.setRoutingKey(ROUTING);
+        config.setRoutingKeyProvider(MANUAL_PROVIDER_STRING);
         config.setVirtualHost(null);
         config.setEnableNotifier(true);
 
@@ -141,6 +144,42 @@ public class PluginTest {
         }
         assertEquals("Unmatched number of messages", 1, Mocks.MESSAGES.size());
         assertThat("Unmatched message contents", Mocks.MESSAGES.get(0), is(MESSAGE));
+        assertEquals(ROUTING, Mocks.ROUTING_KEYS.get(0));
+    }
+
+    /**
+     * Tests that the routing keys are handled correctly for the AUTO option.
+     */
+    @Test
+    public void testAutoRoutingKeys() throws Exception {
+        MQConnection conn = MQConnection.getInstance();
+        MQNotifierConfig config = MQNotifierConfig.getInstance();
+        assertNotNull("No config available: MQNotifierConfig", config);
+        config.setExchangeName(EXCHANGE);
+        config.setServerUri(URI);
+        config.setRoutingKey(ROUTING);
+        config.setRoutingKeyProvider("AUTO");
+        config.setVirtualHost(null);
+        config.setEnableNotifier(true);
+        conn.initialize(
+                config.getUserName(),
+                config.getUserPassword(),
+                config.getServerUri(),
+                config.getVirtualHost()
+        );
+        DumbSlave slave = j.createOnlineSlave();
+        FreeStyleProject project = j.createFreeStyleProject("testproject");
+        project.setAssignedNode(slave);
+        j.buildAndAssertSuccess(project);
+        j.waitUntilNoActivity();
+        //CS IGNORE MagicNumber FOR NEXT 7 LINES. REASON: TestData
+        assertEquals("queue.QUEUED", Mocks.ROUTING_KEYS.get(0));
+        assertEquals("queue.DEQUEUED", Mocks.ROUTING_KEYS.get(1));
+        assertEquals("executor.TASK_ACCEPTED", Mocks.ROUTING_KEYS.get(2));
+        assertEquals("executor.TASK_STARTED", Mocks.ROUTING_KEYS.get(3));
+        assertEquals("run.STARTED", Mocks.ROUTING_KEYS.get(4));
+        assertEquals("run.COMPLETED", Mocks.ROUTING_KEYS.get(5));
+        assertEquals("executor.TASK_COMPLETED", Mocks.ROUTING_KEYS.get(6));
     }
 
     /**
@@ -150,6 +189,7 @@ public class PluginTest {
      */
     @Test
     public void testBuildProject() throws Exception {
+        new Mocks.RunListenerImplMock();
         String name = "qpwoeiruty";
         DumbSlave slave = j.createOnlineSlave();
         FreeStyleProject project = j.createFreeStyleProject(name);
@@ -169,6 +209,7 @@ public class PluginTest {
      */
     @Test
     public void testBuildProject2() throws Exception {
+        new Mocks.RunListenerImplMock();
         String name1 = "adsddlfkjgh";
         String name2 = "zmnxbcv";
         DumbSlave slave = j.createOnlineSlave();
@@ -193,6 +234,7 @@ public class PluginTest {
      */
     @Test
     public void testMatrixProject() throws Exception {
+        new Mocks.RunListenerImplMock();
         String label = "label";
         String axis1 = "one";
         String axis2 = "two";
@@ -220,12 +262,26 @@ public class PluginTest {
         config.setEnableNotifier(true);
 
         String message = "{\"key\":\"value\"}";
+        String message2 = "{\"otherkey\":\"othervalue\"}";
+        String routingKey = "myRoutingKey";
 
         WorkflowJob job = j.createProject(WorkflowJob.class);
         job.setDefinition(new CpsFlowDefinition("publishMQMessage '" + message + "'", true));
 
         j.buildAndAssertSuccess(job);
-        assertThat(Mocks.MESSAGES, Matchers.hasItem(message));
+
+        job.setDefinition(new CpsFlowDefinition(String.format("publishMQMessage(json: '%s', routingKey: '%s')",
+                message2, routingKey), true));
+
+        j.buildAndAssertSuccess(job);
+
+        int index = Mocks.MESSAGES.indexOf(message);
+        assertNotEquals(-1, index);
+        assertEquals("publishMQMessage", Mocks.ROUTING_KEYS.get(index));
+
+        index = Mocks.MESSAGES.indexOf(message2);
+        assertNotEquals(-1, index);
+        assertEquals(routingKey, Mocks.ROUTING_KEYS.get(index));
     }
 
     /**

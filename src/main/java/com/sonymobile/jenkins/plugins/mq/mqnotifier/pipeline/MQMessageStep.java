@@ -35,6 +35,7 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import java.util.Set;
  */
 public class MQMessageStep extends Step {
     private final String json;
+    private String routingKey = "publishMQMessage";
 
     /**
      * DataBoundConstructor.
@@ -54,6 +56,11 @@ public class MQMessageStep extends Step {
     @DataBoundConstructor
     public MQMessageStep(String json) {
         this.json = json;
+    }
+
+    @DataBoundSetter
+    public void setRoutingKey(String routingKey) {
+        this.routingKey = routingKey;
     }
 
     @Override
@@ -66,6 +73,13 @@ public class MQMessageStep extends Step {
      */
     public String getJson() {
         return json;
+    }
+
+    /**
+     * @return The routing key.
+     */
+    public String getRoutingKey() {
+        return routingKey;
     }
 
     /**
@@ -107,7 +121,7 @@ public class MQMessageStep extends Step {
             if (config.getEnableVerboseLogging()) {
                 listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + json.toString(2));
             }
-            MQConnection.getInstance().publish(json);
+            MQConnection.getInstance().publish(json, step.getRoutingKey());
             return null;
         }
     }

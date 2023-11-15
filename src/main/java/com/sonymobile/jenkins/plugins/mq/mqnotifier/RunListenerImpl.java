@@ -103,7 +103,7 @@ public class RunListenerImpl extends RunListener<Run> {
             mqDataProvider.provideStartRunData(r, json);
         }
         logMessage(json, listener);
-        MQConnection.getInstance().publish(json);
+        MQConnection.getInstance().publish(json, "run." + Util.VALUE_STARTED);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class RunListenerImpl extends RunListener<Run> {
         if (r instanceof AbstractBuild) {
             JSONObject json = createDoneMessage(r);
             logMessage(json, listener);
-            MQConnection.getInstance().publish(json);
+            MQConnection.getInstance().publish(json, "run." + Util.VALUE_COMPLETED);
         }
     }
 
@@ -119,7 +119,7 @@ public class RunListenerImpl extends RunListener<Run> {
     public void onFinalized(Run r) {
         if (!(r instanceof AbstractBuild)) {
             JSONObject json = createDoneMessage(r);
-            MQConnection.getInstance().publish(json);
+            MQConnection.getInstance().publish(json, "run." + Util.VALUE_COMPLETED);
         }
     }
 
@@ -130,7 +130,7 @@ public class RunListenerImpl extends RunListener<Run> {
             // https://issues.jenkins-ci.org/browse/JENKINS-26708
             JSONObject json = createBaseMessage(r, Util.VALUE_DELETED);
             json.put(Util.KEY_STATUS, Util.VALUE_DELETED);
-            MQConnection.getInstance().publish(json);
+            MQConnection.getInstance().publish(json, "run." + Util.VALUE_DELETED);
         }
     }
 }

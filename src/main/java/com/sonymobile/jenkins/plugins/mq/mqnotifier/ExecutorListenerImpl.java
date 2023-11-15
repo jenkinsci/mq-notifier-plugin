@@ -76,8 +76,8 @@ public class ExecutorListenerImpl implements ExecutorListener {
         LOGGER.debug("taskStarted");
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
-        json.put(Util.KEY_STATE, "TASK_STARTED");
-        MQConnection.getInstance().publish(json);
+        json.put(Util.KEY_STATE, Util.VALUE_TASK_STARTED);
+        MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_STARTED);
     }
 
     @Override
@@ -85,8 +85,8 @@ public class ExecutorListenerImpl implements ExecutorListener {
         LOGGER.debug("taskAccepted");
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
-        json.put(Util.KEY_STATE, "TASK_ACCEPTED");
-        MQConnection.getInstance().publish(json);
+        json.put(Util.KEY_STATE, Util.VALUE_TASK_ACCEPTED);
+        MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_ACCEPTED);
     }
 
     @Override
@@ -94,9 +94,9 @@ public class ExecutorListenerImpl implements ExecutorListener {
         LOGGER.debug("taskCompleted");
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
-        json.put(Util.KEY_STATE, "TASK_COMPLETED");
+        json.put(Util.KEY_STATE, Util.VALUE_TASK_COMPLETED);
         json.put(Util.TASK_DURATION, durationMS);
-        MQConnection.getInstance().publish(json);
+        MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_COMPLETED);
     }
 
     @Override
@@ -104,9 +104,9 @@ public class ExecutorListenerImpl implements ExecutorListener {
         LOGGER.debug("taskCompletedWithProblems");
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
-        json.put(Util.KEY_STATE, "TASK_COMPLETED");
+        json.put(Util.KEY_STATE, Util.VALUE_TASK_COMPLETED);
         json.put(Util.TASK_DURATION, durationMS);
         json.put(Util.PROBLEMS, problems.getMessage());
-        MQConnection.getInstance().publish(json);
+        MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_COMPLETED);
     }
 }

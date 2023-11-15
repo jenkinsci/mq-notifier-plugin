@@ -50,8 +50,11 @@ f.section(title: "MQ Notifier") {
     f.entry(title: "Virtual host", field: "virtualHost", help: l+"help-virtual-host.html") {
         f.textbox("value":instance.virtualHost)
     }
-    f.entry(title: "Routing Key", field: "routingKey", help: l+"help-routing-key.html") {
-        f.textbox("value":instance.routingKey)
+    f.radioBlock (checked: instance.routingKeyProvider != "MANUAL", title: "Automatic setting of routing key for messages", value: "AUTO", name: "routingKeyProvider", help: l + "help-automatic-routing-key.html", inline: "true")
+    f.radioBlock(checked: instance.routingKeyProvider == "MANUAL", title: "Specific routing key for messages", value: "MANUAL", name: "routingKeyProvider", help: l + "help-manual-routing-key.html", inline: "true") {
+        f.entry(title: "Routing Key", field: "routingKey") {
+            f.textbox("value": instance.routingKey)
+        }
     }
     f.entry(title: "Application Id", field: "appId", help: l+"help-application-id.html") {
         f.textbox("value":instance.appId)

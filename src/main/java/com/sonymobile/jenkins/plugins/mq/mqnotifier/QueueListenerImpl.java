@@ -63,7 +63,7 @@ public class QueueListenerImpl extends QueueListener {
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideEnterWaitingQueueData(wi, json);
         }
-        MQConnection.getInstance().publish(json);
+        MQConnection.getInstance().publish(json, "queue." + Util.VALUE_ADDED_TO_QUEUE);
     }
 
     @Override
@@ -81,6 +81,6 @@ public class QueueListenerImpl extends QueueListener {
         for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
             mqDataProvider.provideLeftQueueData(li, json);
         }
-        MQConnection.getInstance().publish(json);
+        MQConnection.getInstance().publish(json, "queue." + Util.VALUE_REMOVED_FROM_QUEUE);
     }
 }

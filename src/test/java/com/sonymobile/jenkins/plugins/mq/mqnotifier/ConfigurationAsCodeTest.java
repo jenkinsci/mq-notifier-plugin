@@ -55,6 +55,7 @@ public class ConfigurationAsCodeTest {
         assertEquals("johndoe", config.getUserName());
         assertEquals("mq.test.com", config.getServerUri());
         assertEquals("jenkins", config.getRoutingKey());
+        assertEquals("MANUAL", config.getRoutingKeyProvider());
         assertFalse(config.getEnableNotifier());
         assertFalse(config.getPersistentDelivery());
         assertTrue(config.getEnableVerboseLogging());
@@ -67,6 +68,7 @@ public class ConfigurationAsCodeTest {
         config.setServerUri("mq.test.com");
         config.setExchangeName("test");
         config.setEnableNotifier(false);
+        config.setRoutingKeyProvider("MANUAL");
         config.setRoutingKey("jenkins");
         ConfigurationContext context = new ConfigurationContext(ConfiguratorRegistry.get());
         CNode mqNotifierAttr = getUnclassifiedRoot(context).get("mq-notifier");

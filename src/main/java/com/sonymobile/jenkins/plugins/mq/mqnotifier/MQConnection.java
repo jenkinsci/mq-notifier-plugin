@@ -213,10 +213,21 @@ public final class MQConnection implements ShutdownListener {
 
     /**
      * Publish json message on configured MQ server.
+     * Helper method for testing, in order to use functional interfaces.
      *
      * @param json the message in json format
      */
     public void publish(JSONObject json) {
+        publish(json, "");
+    }
+
+    /**
+     * Publish json message on configured MQ server.
+     *
+     * @param json the message in json format
+     * @param routingKey the routing key to use for the message, unless overriden by global setting.
+     */
+    public void publish(JSONObject json, String routingKey) {
         MQNotifierConfig config = MQNotifierConfig.getInstance();
         if (config != null && config.getEnableNotifier()) {
             AMQP.BasicProperties.Builder bob = new AMQP.BasicProperties.Builder();
@@ -229,7 +240,10 @@ public final class MQConnection implements ShutdownListener {
             bob.contentType(Util.CONTENT_TYPE);
             bob.timestamp(Calendar.getInstance().getTime());
 
-            addMessageToQueue(config.getExchangeName(), config.getRoutingKey(),
+            if (MQNotifierConfig.MANUAL_ROUTING_PROVIDER.equals(config.getRoutingKeyProvider())) {
+                routingKey = config.getRoutingKey();
+            }
+            addMessageToQueue(config.getExchangeName(), routingKey,
                     bob.build(), json.toString().getBytes(StandardCharsets.UTF_8));
         }
     }
