@@ -1,0 +1,9 @@
+<?jelly escape-by-default='true'?>
+<div>
+    This is the MQ notifier plugin.
+
+    This plugin sends MQ messages for the various parts of the builds' lifecycles.
+    Some examples include:
+    When the build is put on and removed from the queue.
+    When builds start and stop executing.
+</div>
