@@ -58,7 +58,7 @@ public class ConfigurationAsCodeTest {
         assertEquals("MANUAL", config.getRoutingKeyProvider());
         assertFalse(config.getEnableNotifier());
         assertFalse(config.getPersistentDelivery());
-        assertTrue(config.getEnableVerboseLogging());
+        assertTrue(config.getEnableVerboseLoggingBoolean());
     }
 
     @Test

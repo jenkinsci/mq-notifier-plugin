@@ -100,7 +100,7 @@ public class PluginTest {
         config.setRoutingKey(ROUTING);
         config.setVirtualHost(null);
         config.setEnableNotifier(false);
-        config.setEnableVerboseLogging(false);
+        config.setEnableVerboseLoggingBoolean(false);
 
         if (config != null && config.getEnableNotifier()) {
             conn.initialize(
@@ -159,6 +159,7 @@ public class PluginTest {
         config.setServerUri(URI);
         config.setRoutingKey(ROUTING);
         config.setRoutingKeyProvider("AUTO");
+        config.setEnableVerboseLoggingBoolean(false);
         config.setVirtualHost(null);
         config.setEnableNotifier(true);
         conn.initialize(
@@ -260,6 +261,7 @@ public class PluginTest {
     public void testPipelineStep() throws Exception {
         MQNotifierConfig config = MQNotifierConfig.getInstance();
         config.setEnableNotifier(true);
+        config.setEnableVerboseLoggingBoolean(true);
 
         String message = "{\"key\":\"value\"}";
         String message2 = "{\"otherkey\":\"othervalue\"}";
@@ -293,7 +295,7 @@ public class PluginTest {
     public void testPipelineStepLogsMessage() throws Exception {
         MQNotifierConfig config = MQNotifierConfig.getInstance();
         config.setEnableNotifier(true);
-        config.setEnableVerboseLogging(true);
+        config.setEnableVerboseLoggingBoolean(true);
 
         String message = "{\"key\":\"value\"}";
 

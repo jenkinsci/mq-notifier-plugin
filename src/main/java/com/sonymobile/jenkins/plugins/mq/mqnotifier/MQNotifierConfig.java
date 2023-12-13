@@ -70,6 +70,9 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     private boolean enableNotifier;
 
     /* Whether to use verbose logging or not */
+    private Boolean enableVerboseLoggingBoolean;
+
+    /* Legacy boolean value for setting enableVerboseLogging */
     private boolean enableVerboseLogging;
 
     /* The MQ server URI */
@@ -106,21 +109,21 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     /**
      * Creates an instance with specified parameters.
      *
-     * @param enableNotifier        if this plugin is enabled
-     * @param serverUri             the server uri
-     * @param userName              the user name
-     * @param userPassword          the user password
-     * @param exchangeName          the name of the exchange
-     * @param virtualHost           the name of the virtual host
-     * @param routingKey            the routing key
-     * @param persistentDelivery    if using persistent delivery mode
-     * @param appId                 the application id
-     * @param enableVerboseLogging  if verbose logging is enabled
+     * @param enableNotifier               if this plugin is enabled
+     * @param serverUri                    the server uri
+     * @param userName                     the user name
+     * @param userPassword                 the user password
+     * @param exchangeName                 the name of the exchange
+     * @param virtualHost                  the name of the virtual host
+     * @param routingKey                   the routing key
+     * @param persistentDelivery           if using persistent delivery mode
+     * @param appId                        the application id
+     * @param enableVerboseLoggingBoolean  if verbose logging is enabled
      */
     @DataBoundConstructor
     public MQNotifierConfig(boolean enableNotifier, String serverUri, String userName, Secret userPassword,
                             String exchangeName, String virtualHost, String routingKeyProvider, String routingKey,
-                            boolean persistentDelivery, String appId, boolean enableVerboseLogging) {
+                            boolean persistentDelivery, String appId, Boolean enableVerboseLoggingBoolean) {
         this.enableNotifier = enableNotifier;
         this.serverUri = serverUri;
         this.userName = userName;
@@ -131,7 +134,7 @@ public final class MQNotifierConfig extends GlobalConfiguration {
         this.routingKey = routingKey;
         this.persistentDelivery = persistentDelivery;
         this.appId = appId;
-        this.enableVerboseLogging = enableVerboseLogging;
+        this.enableVerboseLoggingBoolean = enableVerboseLoggingBoolean;
         super.load();
     }
 
@@ -141,7 +144,6 @@ public final class MQNotifierConfig extends GlobalConfiguration {
     public MQNotifierConfig() {
         this.enableNotifier = false;        // default value
         this.persistentDelivery = true;     // default value
-        this.enableVerboseLogging = true;   // default value
         super.load();
     }
 
@@ -157,6 +159,9 @@ public final class MQNotifierConfig extends GlobalConfiguration {
      * If the routing key has been set, turn on manual routing keys.
      * If it hasn't, default to automatically setting routing keys.*/
     protected Object readResolve() {
+        if (enableVerboseLoggingBoolean == null) {
+            enableVerboseLoggingBoolean = enableVerboseLogging ? null : false;
+        }
         if (StringUtils.isBlank(getRoutingKeyProvider())) {
             if (StringUtils.isNotBlank(getRoutingKey())) {
                 setRoutingKeyProvider(MANUAL_ROUTING_PROVIDER);
@@ -201,17 +206,17 @@ public final class MQNotifierConfig extends GlobalConfiguration {
      *
      * @return true if verbose logging is enabled.
      */
-    public boolean getEnableVerboseLogging() {
-        return this.enableVerboseLogging;
+    public Boolean getEnableVerboseLoggingBoolean() {
+        return this.enableVerboseLoggingBoolean;
     }
 
     /**
      * Sets flag whether verbose logging is enabled or not.
      *
-     * @param enableVerboseLogging true if this verbose logging is enabled.
+     * @param enableVerboseLoggingBoolean true if verbose logging is enabled.
      */
-    public void setEnableVerboseLogging(boolean enableVerboseLogging) {
-        this.enableVerboseLogging = enableVerboseLogging;
+    public void setEnableVerboseLoggingBoolean(Boolean enableVerboseLoggingBoolean) {
+        this.enableVerboseLoggingBoolean = enableVerboseLoggingBoolean;
     }
 
     /**

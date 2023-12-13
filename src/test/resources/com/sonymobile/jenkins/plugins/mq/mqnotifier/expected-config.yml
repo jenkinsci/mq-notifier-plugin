@@ -1,5 +1,5 @@
 enableNotifier: false
-enableVerboseLogging: true
+enableVerboseLoggingBoolean: true
 exchangeName: "test"
 persistentDelivery: false
 routingKey: "jenkins"

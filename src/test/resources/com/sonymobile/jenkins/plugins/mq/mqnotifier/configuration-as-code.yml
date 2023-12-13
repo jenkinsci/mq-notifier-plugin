@@ -5,5 +5,5 @@ unclassified:
     routingKeyProvider: "MANUAL"
     serverUri: "mq.test.com"
     enableNotifier: false
-    enableVerboseLogging: true
+    enableVerboseLoggingBoolean: true
     persistentDelivery: false

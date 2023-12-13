@@ -63,6 +63,6 @@ f.section(title: "MQ Notifier") {
         f.checkbox(field: "persistentDelivery", checked: instance.persistentDelivery)
     }
     f.entry(title: "Enable verbose logging", help: l+"help-enable-verbose-logging.html") {
-        f.checkbox(field: "enableVerboseLogging", checked: instance.enableVerboseLogging)
+        f.checkbox(field: "enableVerboseLoggingBoolean", checked: instance.enableVerboseLoggingBoolean == true)
     }
 }

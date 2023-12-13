@@ -118,7 +118,7 @@ public class MQMessageStep extends Step {
             // message is put on a queue to be sent at a later point in time. Preferably we would be able
             // to get a Future<> back so that we could wait if we wanted. But that's not how the MQ
             // Notifier is built.
-            if (config.getEnableVerboseLogging()) {
+            if (config.getEnableVerboseLoggingBoolean()) {
                 listener.getLogger().println("Posting JSON message to RabbitMQ:\n" + json.toString(2));
             }
             MQConnection.getInstance().publish(json, step.getRoutingKey());
