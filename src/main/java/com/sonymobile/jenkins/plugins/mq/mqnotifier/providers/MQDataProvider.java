@@ -23,7 +23,10 @@
  */
 package com.sonymobile.jenkins.plugins.mq.mqnotifier.providers;
 
+import com.sonymobile.jenkins.plugins.mq.mqnotifier.MQConnection;
+import com.sonymobile.jenkins.plugins.mq.mqnotifier.Util;
 import hudson.ExtensionPoint;
+import hudson.model.Executor;
 import hudson.model.Queue;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
@@ -58,7 +61,7 @@ public abstract class MQDataProvider implements ExtensionPoint {
 
     /**
      * Provides data for when a Run starts.
-     *
+     *§
      * @param run the {@link hudson.model.Run} that has started running.
      * @param json the json object that we should add information to.
      */
@@ -72,6 +75,49 @@ public abstract class MQDataProvider implements ExtensionPoint {
      * @param json the json object that we should add information to.
      */
     public void provideCompletedRunData(Run run, JSONObject json) {
+    }
+
+    /**
+     *  Provides data for when a task is accepted
+     *
+     * @param executor The executor.
+     * @param task The task.
+     * @param json the json object that we should add information to.
+     */
+    public void provideTaskAcceptedData(Executor executor, Queue.Task task, JSONObject json) {
+    }
+
+    /**
+     *  Provides data for when a task is started
+     *
+     * @param executor The executor.
+     * @param task The task.
+     * @param json the json object that we should add information to.
+     */
+    public void provideTaskStartedData(Executor executor, Queue.Task task, JSONObject json) {
+    }
+
+    /**
+     *  Provides data for when a task is completed
+     *
+     * @param executor The executor.
+     * @param task The task.
+     * @param durationMS The number of milliseconds that the task took to complete.
+     * @param json the json object that we should add information to.
+     */
+    public void provideTaskCompletedData(Executor executor, Queue.Task task, long durationMS, JSONObject json) {
+    }
+
+    /**
+     *  Provides data for when a task is completed with problems
+     *
+     * @param executor The executor.
+     * @param task The task.
+     * @param durationMS The number of milliseconds that the task took to complete.
+     * @param problems The exception that was thrown.
+     * @param json the json object that we should add information to.
+     */
+    public void provideTaskCompletedWithProblemsData(Executor executor, Queue.Task task, long durationMS, Throwable problems, JSONObject json) {
     }
 
     /**
