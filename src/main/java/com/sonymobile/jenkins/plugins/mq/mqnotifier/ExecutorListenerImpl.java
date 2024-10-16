@@ -23,6 +23,7 @@
  */
 package com.sonymobile.jenkins.plugins.mq.mqnotifier;
 
+import com.sonymobile.jenkins.plugins.mq.mqnotifier.providers.MQDataProvider;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Executor;
@@ -77,6 +78,9 @@ public class ExecutorListenerImpl implements ExecutorListener {
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
         json.put(Util.KEY_STATE, Util.VALUE_TASK_STARTED);
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideTaskStartedData(executor, task, json);
+        }
         MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_STARTED);
     }
 
@@ -86,6 +90,9 @@ public class ExecutorListenerImpl implements ExecutorListener {
         JSONObject json = new JSONObject();
         populateCommon(json, executor, task);
         json.put(Util.KEY_STATE, Util.VALUE_TASK_ACCEPTED);
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideTaskAcceptedData(executor, task, json);
+        }
         MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_ACCEPTED);
     }
 
@@ -96,6 +103,9 @@ public class ExecutorListenerImpl implements ExecutorListener {
         populateCommon(json, executor, task);
         json.put(Util.KEY_STATE, Util.VALUE_TASK_COMPLETED);
         json.put(Util.TASK_DURATION, durationMS);
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideTaskCompletedData(executor, task, durationMS, json);
+        }
         MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_COMPLETED);
     }
 
@@ -107,6 +117,9 @@ public class ExecutorListenerImpl implements ExecutorListener {
         json.put(Util.KEY_STATE, Util.VALUE_TASK_COMPLETED);
         json.put(Util.TASK_DURATION, durationMS);
         json.put(Util.PROBLEMS, problems.getMessage());
+        for (MQDataProvider mqDataProvider : MQDataProvider.all()) {
+            mqDataProvider.provideTaskCompletedWithProblemsData(executor, task, durationMS, problems, json);
+        }
         MQConnection.getInstance().publish(json, "executor." + Util.VALUE_TASK_COMPLETED);
     }
 }
