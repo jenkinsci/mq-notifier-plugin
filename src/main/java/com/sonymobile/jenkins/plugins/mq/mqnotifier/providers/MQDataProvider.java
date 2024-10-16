@@ -76,7 +76,7 @@ public abstract class MQDataProvider implements ExtensionPoint {
     }
 
     /**
-     *  Provides data for when a task is accepted
+     *  Provides data for when a task is accepted.
      *
      * @param executor The executor.
      * @param task The task.
@@ -86,7 +86,7 @@ public abstract class MQDataProvider implements ExtensionPoint {
     }
 
     /**
-     *  Provides data for when a task is started
+     *  Provides data for when a task is started.
      *
      * @param executor The executor.
      * @param task The task.
@@ -96,7 +96,7 @@ public abstract class MQDataProvider implements ExtensionPoint {
     }
 
     /**
-     *  Provides data for when a task is completed
+     *  Provides data for when a task is completed.
      *
      * @param executor The executor.
      * @param task The task.
@@ -107,7 +107,7 @@ public abstract class MQDataProvider implements ExtensionPoint {
     }
 
     /**
-     *  Provides data for when a task is completed with problems
+     *  Provides data for when a task is completed with problems.
      *
      * @param executor The executor.
      * @param task The task.
@@ -115,7 +115,8 @@ public abstract class MQDataProvider implements ExtensionPoint {
      * @param problems The exception that was thrown.
      * @param json the json object that we should add information to.
      */
-    public void provideTaskCompletedWithProblemsData(Executor executor, Queue.Task task, long durationMS, Throwable problems, JSONObject json) {
+    public void provideTaskCompletedWithProblemsData(Executor executor, Queue.Task task, long durationMS,
+                                                     Throwable problems, JSONObject json) {
     }
 
     /**
