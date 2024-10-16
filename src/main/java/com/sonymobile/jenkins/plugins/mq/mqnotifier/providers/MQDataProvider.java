@@ -23,8 +23,6 @@
  */
 package com.sonymobile.jenkins.plugins.mq.mqnotifier.providers;
 
-import com.sonymobile.jenkins.plugins.mq.mqnotifier.MQConnection;
-import com.sonymobile.jenkins.plugins.mq.mqnotifier.Util;
 import hudson.ExtensionPoint;
 import hudson.model.Executor;
 import hudson.model.Queue;
@@ -61,7 +59,7 @@ public abstract class MQDataProvider implements ExtensionPoint {
 
     /**
      * Provides data for when a Run starts.
-     *§
+     *
      * @param run the {@link hudson.model.Run} that has started running.
      * @param json the json object that we should add information to.
      */
